@@ -1,0 +1,1009 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum Role {
+  ELEVE
+  ENSEIGNANT
+  MODERATEUR
+  ADMINISTRATEUR
+}
+
+enum UserStatus {
+  ACTIF
+  SUSPENDU
+}
+
+enum SchoolCycle {
+  COLLEGE
+  LYCEE
+}
+
+enum ClassLevel {
+  SIXIEME
+  CINQUIEME
+  QUATRIEME
+  TROISIEME
+  SECONDE
+  PREMIERE
+  TERMINALE
+}
+
+enum ClassSeries {
+  A
+  C
+  D
+}
+
+enum ContentStatus {
+  BROUILLON
+  PUBLIE
+  ARCHIVE
+}
+
+enum LessonType {
+  TEXTE
+  PDF
+  VIDEO
+}
+
+enum AssetKind {
+  VIDEO
+  PDF
+  IMAGE
+  THUMBNAIL
+}
+
+enum VideoQuality {
+  Q240
+  Q360
+  Q480
+}
+
+enum AssetProcessingStatus {
+  EN_ATTENTE
+  EN_COURS
+  PRET
+  ECHEC
+}
+
+enum AssessmentKind {
+  EXERCICE
+  QUIZ
+}
+
+enum QuestionType {
+  QCM_UNIQUE
+  QCM_MULTIPLE
+  VRAI_FAUX
+}
+
+enum AttemptStatus {
+  EN_COURS
+  TERMINEE
+}
+
+enum Recurrence {
+  AUCUNE
+  QUOTIDIENNE
+  HEBDOMADAIRE
+}
+
+enum EventType {
+  EXAMEN
+  DEVOIR
+  AUTRE
+}
+
+enum ReminderStatus {
+  PLANIFIE
+  ENVOYE
+  ECHEC
+  ANNULE
+}
+
+enum NotificationType {
+  EVENEMENT_ANNONCE
+  EVENEMENT_RAPPEL
+  FLAMME_RAPPEL
+  CONTRIBUTION_DECISION
+  FORUM_REPONSE
+  SANCTION
+  SYSTEME
+}
+
+enum DevicePlatform {
+  ANDROID
+  IOS
+}
+
+enum ActivityType {
+  LECON_TERMINEE
+  EXERCICE_TERMINE
+  QUIZ_TERMINE
+  CONTRIBUTION_PUBLIEE
+  FORUM_REPONSE
+}
+
+enum ActivityRefType {
+  LESSON
+  ASSESSMENT
+  CONTRIBUTION
+  FORUM_ANSWER
+}
+
+enum ContributionStatus {
+  EN_ATTENTE
+  PUBLIEE
+  REFUSEE
+}
+
+enum ForumStatus {
+  VISIBLE
+  MASQUE
+}
+
+enum ReportReason {
+  INAPPROPRIE
+  HARCELEMENT
+  SPAM
+  HORS_SUJET
+  ERREUR_CONTENU
+  AUTRE
+}
+
+enum ReportStatus {
+  OUVERT
+  TRAITE
+  REJETE
+}
+
+enum SanctionType {
+  AVERTISSEMENT
+  SUSPENSION
+}
+
+enum RequestStatus {
+  EN_ATTENTE
+  APPROUVEE
+  REFUSEE
+}
+
+enum OtpPurpose {
+  INSCRIPTION
+  REINITIALISATION
+}
+
+// =============================================================================
+// STRUCTURE PÉDAGOGIQUE (academics)
+// =============================================================================
+
+model AcademicYear {
+  id        String   @id @default(uuid()) @db.Uuid
+  label     String   @unique // « 2026-2027 »
+  startDate DateTime @db.Date
+  endDate   DateTime @db.Date
+  isCurrent Boolean  @default(false) // une seule année courante (index partiel, voir SQL)
+  createdAt DateTime @default(now())
+
+  students           StudentProfile[]
+  enrollments        ClassEnrollment[]
+  classChangeRequest ClassChangeRequest[]
+
+  @@map("academic_years")
+}
+
+model Class {
+  id       String       @id @default(uuid()) @db.Uuid
+  code     String       @unique // 6E, 5E, 4E, 3E, 2A, 2C, 2D, 1A, 1C, 1D, TA, TC, TD
+  label    String // « 2nde C »
+  cycle    SchoolCycle
+  level    ClassLevel
+  series   ClassSeries? // null pour la 6e, 5e, 4e et 3e
+  position Int          @unique // ordre d'affichage
+
+  students      StudentProfile[]
+  enrollments   ClassEnrollment[]
+  classSubjects ClassSubject[]
+  events        Event[]
+  contributions Contribution[]
+  forumThreads  ForumThread[]
+  requestsFrom  ClassChangeRequest[] @relation("RequestFromClass")
+  requestsTo    ClassChangeRequest[] @relation("RequestToClass")
+
+  @@map("classes")
+}
+
+model Subject {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique // « Mathématiques »
+  slug      String   @unique
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+
+  classSubjects ClassSubject[]
+  events        Event[]
+  studySessions StudySession[]
+
+  @@map("subjects")
+}
+
+// Matière enseignée dans une classe donnée.
+model ClassSubject {
+  id          String   @id @default(uuid()) @db.Uuid
+  classId     String   @db.Uuid
+  subjectId   String   @db.Uuid
+  coefficient Int? // facultatif
+  position    Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  class         Class               @relation(fields: [classId], references: [id])
+  subject       Subject             @relation(fields: [subjectId], references: [id])
+  chapters      Chapter[]
+  teachers      TeacherAssignment[]
+  contributions Contribution[]
+  forumThreads  ForumThread[]
+
+  @@unique([classId, subjectId])
+  @@unique([id, classId]) // cible des clés composites (cohérence du classId)
+  @@map("class_subjects")
+}
+
+// Classes et matières assignées à un enseignant.
+model TeacherAssignment {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @db.Uuid
+  classSubjectId String   @db.Uuid
+  createdAt      DateTime @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  classSubject ClassSubject @relation(fields: [classSubjectId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, classSubjectId])
+  @@map("teacher_assignments")
+}
+
+// =============================================================================
+// COMPTES ET AUTHENTIFICATION (auth, users)
+// =============================================================================
+
+model User {
+  id                 String     @id @default(uuid()) @db.Uuid
+  phone              String     @unique // E.164, ex. +22670000000
+  passwordHash       String
+  role               Role       @default(ELEVE)
+  status             UserStatus @default(ACTIF)
+  canPublish         Boolean    @default(false) // enseignant : publication directe
+  mustChangePassword Boolean    @default(false) // mot de passe temporaire (personnel)
+  phoneVerifiedAt    DateTime?
+  failedLoginCount   Int        @default(0)
+  lockedUntil        DateTime?
+  lastLoginAt        DateTime?
+  createdAt          DateTime   @default(now())
+  updatedAt          DateTime   @updatedAt
+  anonymizedAt       DateTime? // suppression de compte : données personnelles effacées
+
+  studentProfile         StudentProfile?
+  teacherAssignments     TeacherAssignment[]
+  refreshTokens          RefreshToken[]
+  lessonProgress         LessonProgress[]
+  lessonFavorites        LessonFavorite[]
+  attempts               Attempt[]
+  studySessions          StudySession[]
+  deviceTokens           DeviceToken[]
+  notifications          Notification[]
+  notificationPreference NotificationPreference?
+  activityLogs           ActivityLog[]
+  streak                 UserStreak?
+  contributions          Contribution[]          @relation("ContributionAuthor")
+  contributionsReviewed  Contribution[]          @relation("ContributionReviewer")
+  contributionRatings    ContributionRating[]
+  forumThreads           ForumThread[]           @relation("ThreadAuthor")
+  forumAnswers           ForumAnswer[]           @relation("AnswerAuthor")
+  answerLikes            AnswerLike[]
+  reportsMade            Report[]                @relation("ReportReporter")
+  reportsHandled         Report[]                @relation("ReportHandler")
+  sanctionsReceived      Sanction[]              @relation("SanctionTarget")
+  sanctionsIssued        Sanction[]              @relation("SanctionIssuer")
+  sanctionsRevoked       Sanction[]              @relation("SanctionRevoker")
+  eventsCreated          Event[]
+  chaptersCreated        Chapter[]
+  lessonsCreated         Lesson[]                @relation("LessonCreator")
+  lessonsPublished       Lesson[]                @relation("LessonPublisher")
+  assessmentsCreated     Assessment[]            @relation("AssessmentCreator")
+  assessmentsPublished   Assessment[]            @relation("AssessmentPublisher")
+  classRequestsReviewed  ClassChangeRequest[]
+  auditLogs              AuditLog[]
+
+  @@index([role, status])
+  @@map("users")
+}
+
+// Profil public de l'élève (pseudonyme, classe actuelle).
+model StudentProfile {
+  id             String   @id @default(uuid()) @db.Uuid
+  userId         String   @unique @db.Uuid
+  displayName    String   @unique // pseudonyme public (unicité insensible à la casse, voir SQL)
+  schoolName     String?
+  classId        String   @db.Uuid // classe actuelle
+  academicYearId String   @db.Uuid // année scolaire de la classe actuelle
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user                User                 @relation(fields: [userId], references: [id], onDelete: Cascade)
+  class               Class                @relation(fields: [classId], references: [id])
+  academicYear        AcademicYear         @relation(fields: [academicYearId], references: [id])
+  enrollments         ClassEnrollment[]
+  classChangeRequests ClassChangeRequest[]
+
+  @@index([classId])
+  @@map("student_profiles")
+}
+
+// Historique de classe par année scolaire.
+model ClassEnrollment {
+  id               String   @id @default(uuid()) @db.Uuid
+  studentProfileId String   @db.Uuid
+  academicYearId   String   @db.Uuid
+  classId          String   @db.Uuid
+  createdAt        DateTime @default(now())
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  academicYear   AcademicYear   @relation(fields: [academicYearId], references: [id])
+  class          Class          @relation(fields: [classId], references: [id])
+
+  @@unique([studentProfileId, academicYearId])
+  @@map("class_enrollments")
+}
+
+// Demande de changement de classe (rentrée), validée dans le back-office.
+model ClassChangeRequest {
+  id               String        @id @default(uuid()) @db.Uuid
+  studentProfileId String        @db.Uuid
+  academicYearId   String        @db.Uuid
+  fromClassId      String        @db.Uuid
+  toClassId        String        @db.Uuid
+  status           RequestStatus @default(EN_ATTENTE)
+  reviewedById     String?       @db.Uuid
+  reviewedAt       DateTime?
+  note             String?
+  createdAt        DateTime      @default(now())
+
+  studentProfile StudentProfile @relation(fields: [studentProfileId], references: [id], onDelete: Cascade)
+  academicYear   AcademicYear   @relation(fields: [academicYearId], references: [id])
+  fromClass      Class          @relation("RequestFromClass", fields: [fromClassId], references: [id])
+  toClass        Class          @relation("RequestToClass", fields: [toClassId], references: [id])
+  reviewedBy     User?          @relation(fields: [reviewedById], references: [id])
+
+  @@index([status, createdAt])
+  @@map("class_change_requests")
+}
+
+// Code SMS de vérification (haché). Pas de clé vers User : l'inscription précède le compte.
+model OtpCode {
+  id         String     @id @default(uuid()) @db.Uuid
+  phone      String
+  purpose    OtpPurpose
+  codeHash   String
+  expiresAt  DateTime
+  attempts   Int        @default(0)
+  consumedAt DateTime?
+  createdAt  DateTime   @default(now())
+
+  @@index([phone, purpose, createdAt])
+  @@index([expiresAt])
+  @@map("otp_codes")
+}
+
+model RefreshToken {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @db.Uuid
+  tokenHash    String    @unique
+  deviceId     String
+  deviceName   String?
+  expiresAt    DateTime
+  revokedAt    DateTime?
+  replacedById String?   @unique @db.Uuid // rotation : jeton qui remplace celui-ci
+  lastUsedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  user       User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  replacedBy RefreshToken? @relation("TokenRotation", fields: [replacedById], references: [id])
+  replaces   RefreshToken? @relation("TokenRotation")
+
+  @@index([userId, deviceId])
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// =============================================================================
+// COURS (courses)
+// =============================================================================
+
+model Chapter {
+  id             String        @id @default(uuid()) @db.Uuid
+  classSubjectId String        @db.Uuid
+  classId        String        @db.Uuid // dénormalisé, cohérent avec classSubject
+  title          String
+  description    String?
+  position       Int           @default(0)
+  status         ContentStatus @default(BROUILLON)
+  version        Int           @default(1)
+  createdById    String        @db.Uuid
+  publishedAt    DateTime?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  classSubject ClassSubject @relation(fields: [classSubjectId, classId], references: [id, classId])
+  createdBy    User         @relation(fields: [createdById], references: [id])
+  lessons      Lesson[]
+  assessments  Assessment[]
+
+  @@unique([id, classId])
+  @@index([classSubjectId, position])
+  @@index([classId, updatedAt])
+  @@map("chapters")
+}
+
+model Lesson {
+  id              String        @id @default(uuid()) @db.Uuid
+  chapterId       String        @db.Uuid
+  classId         String        @db.Uuid
+  title           String
+  type            LessonType
+  contentMarkdown String?       @db.Text // type TEXTE : Markdown nettoyé côté serveur
+  durationSeconds Int? // type VIDEO
+  position        Int           @default(0)
+  status          ContentStatus @default(BROUILLON)
+  version         Int           @default(1)
+  createdById     String        @db.Uuid
+  publishedById   String?       @db.Uuid
+  publishedAt     DateTime?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  chapter     Chapter          @relation(fields: [chapterId, classId], references: [id, classId])
+  createdBy   User             @relation("LessonCreator", fields: [createdById], references: [id])
+  publishedBy User?            @relation("LessonPublisher", fields: [publishedById], references: [id])
+  assets      LessonAsset[]
+  progress    LessonProgress[]
+  favorites   LessonFavorite[]
+
+  @@index([chapterId, position])
+  @@index([classId, status, updatedAt])
+  @@map("lessons")
+}
+
+model LessonAsset {
+  id               String                @id @default(uuid()) @db.Uuid
+  lessonId         String                @db.Uuid
+  kind             AssetKind
+  quality          VideoQuality? // vidéos uniquement
+  storageKey       String                @unique // {type}/{classId}/{identifiant}.{ext}
+  mimeType         String
+  sizeBytes        Int
+  durationSeconds  Int?
+  processingStatus AssetProcessingStatus @default(PRET)
+  createdAt        DateTime              @default(now())
+
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([lessonId, kind])
+  @@map("lesson_assets")
+}
+
+model LessonFavorite {
+  userId    String   @db.Uuid
+  lessonId  String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@id([userId, lessonId])
+  @@map("lesson_favorites")
+}
+
+model LessonProgress {
+  id                  String    @id @default(uuid()) @db.Uuid
+  userId              String    @db.Uuid
+  lessonId            String    @db.Uuid
+  progressPercent     Int       @default(0) // 0 à 100
+  lastPositionSeconds Int? // reprise de lecture vidéo
+  completedAt         DateTime?
+  updatedAt           DateTime  @updatedAt
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  lesson Lesson @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, lessonId])
+  @@index([userId, updatedAt])
+  @@map("lesson_progress")
+}
+
+// =============================================================================
+// EXERCICES ET QUIZ (assessments)
+// Un seul modèle, distingué par `kind` (EXERCICE ou QUIZ).
+// =============================================================================
+
+model Assessment {
+  id              String         @id @default(uuid()) @db.Uuid
+  chapterId       String         @db.Uuid
+  classId         String         @db.Uuid
+  kind            AssessmentKind
+  title           String
+  instructions    String?
+  durationSeconds Int? // quiz chronométré
+  passingPercent  Int? // seuil de réussite
+  position        Int            @default(0)
+  status          ContentStatus  @default(BROUILLON)
+  version         Int            @default(1)
+  createdById     String         @db.Uuid
+  publishedById   String?        @db.Uuid
+  publishedAt     DateTime?
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  chapter     Chapter    @relation(fields: [chapterId, classId], references: [id, classId])
+  createdBy   User       @relation("AssessmentCreator", fields: [createdById], references: [id])
+  publishedBy User?      @relation("AssessmentPublisher", fields: [publishedById], references: [id])
+  questions   Question[]
+  attempts    Attempt[]
+
+  @@index([chapterId, kind, position])
+  @@index([classId, status, updatedAt])
+  @@map("assessments")
+}
+
+model Question {
+  id           String       @id @default(uuid()) @db.Uuid
+  assessmentId String       @db.Uuid
+  type         QuestionType
+  statement    String       @db.Text
+  explanation  String?      @db.Text // affichée après correction
+  imageKey     String? // clé S3 d'une image facultative
+  points       Int          @default(1)
+  position     Int          @default(0)
+
+  assessment Assessment       @relation(fields: [assessmentId], references: [id], onDelete: Cascade)
+  options    QuestionOption[]
+  answers    AttemptAnswer[]
+
+  @@index([assessmentId, position])
+  @@map("questions")
+}
+
+model QuestionOption {
+  id         String  @id @default(uuid()) @db.Uuid
+  questionId String  @db.Uuid
+  label      String  @db.Text
+  isCorrect  Boolean @default(false)
+  position   Int     @default(0)
+
+  question Question              @relation(fields: [questionId], references: [id], onDelete: Cascade)
+  selected AttemptAnswerOption[]
+
+  @@index([questionId, position])
+  @@map("question_options")
+}
+
+model Attempt {
+  id                String        @id @default(uuid()) @db.Uuid
+  userId            String        @db.Uuid
+  assessmentId      String        @db.Uuid
+  assessmentVersion Int // version du contenu au moment de la tentative
+  clientId          String        @db.Uuid // identifiant généré par l'appareil (idempotence)
+  status            AttemptStatus @default(EN_COURS)
+  startedAt         DateTime
+  submittedAt       DateTime?
+  score             Int? // points obtenus (calculé par le serveur)
+  maxScore          Int?
+  durationSeconds   Int?
+  createdAt         DateTime      @default(now())
+
+  user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  assessment Assessment      @relation(fields: [assessmentId], references: [id])
+  answers    AttemptAnswer[]
+
+  @@unique([userId, clientId])
+  @@index([userId, assessmentId])
+  @@index([assessmentId])
+  @@map("attempts")
+}
+
+model AttemptAnswer {
+  id            String   @id @default(uuid()) @db.Uuid
+  attemptId     String   @db.Uuid
+  questionId    String   @db.Uuid
+  isCorrect     Boolean
+  pointsAwarded Int      @default(0)
+  answeredAt    DateTime @default(now())
+
+  attempt  Attempt               @relation(fields: [attemptId], references: [id], onDelete: Cascade)
+  question Question              @relation(fields: [questionId], references: [id])
+  options  AttemptAnswerOption[]
+
+  @@unique([attemptId, questionId])
+  @@map("attempt_answers")
+}
+
+model AttemptAnswerOption {
+  attemptAnswerId String @db.Uuid
+  optionId        String @db.Uuid
+
+  attemptAnswer AttemptAnswer  @relation(fields: [attemptAnswerId], references: [id], onDelete: Cascade)
+  option        QuestionOption @relation(fields: [optionId], references: [id])
+
+  @@id([attemptAnswerId, optionId])
+  @@map("attempt_answer_options")
+}
+
+// =============================================================================
+// EMPLOI DU TEMPS (planner)
+// =============================================================================
+
+model StudySession {
+  id                    String     @id @default(uuid()) @db.Uuid
+  userId                String     @db.Uuid
+  clientId              String     @db.Uuid // idempotence de la synchronisation
+  title                 String
+  subjectId             String?    @db.Uuid
+  startsAt              DateTime
+  endsAt                DateTime
+  recurrence            Recurrence @default(AUCUNE)
+  recurrenceEndsOn      DateTime?  @db.Date
+  reminderMinutesBefore Int        @default(15) // rappel programmé en local sur le téléphone
+  completedAt           DateTime?
+  createdAt             DateTime   @default(now())
+  updatedAt             DateTime   @updatedAt
+  deletedAt             DateTime? // suppression logique (synchronisation)
+
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id])
+
+  @@unique([userId, clientId])
+  @@index([userId, startsAt])
+  @@index([userId, updatedAt])
+  @@map("study_sessions")
+}
+
+// =============================================================================
+// ÉVÉNEMENTS ET NOTIFICATIONS (events, notifications)
+// =============================================================================
+
+model Event {
+  id          String        @id @default(uuid()) @db.Uuid
+  classId     String        @db.Uuid
+  type        EventType
+  title       String
+  description String?
+  subjectId   String?       @db.Uuid
+  startsAt    DateTime
+  endsAt      DateTime?
+  status      ContentStatus @default(PUBLIE)
+  createdById String        @db.Uuid
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  class     Class           @relation(fields: [classId], references: [id])
+  subject   Subject?        @relation(fields: [subjectId], references: [id])
+  createdBy User            @relation(fields: [createdById], references: [id])
+  reminders EventReminder[]
+
+  @@index([classId, startsAt])
+  @@index([classId, updatedAt])
+  @@map("events")
+}
+
+// Rappel planifié pour toute la classe (J-7, veille, jour J...).
+model EventReminder {
+  id        String         @id @default(uuid()) @db.Uuid
+  eventId   String         @db.Uuid
+  remindAt  DateTime
+  status    ReminderStatus @default(PLANIFIE)
+  attempts  Int            @default(0)
+  sentAt    DateTime?
+  createdAt DateTime       @default(now())
+
+  event Event @relation(fields: [eventId], references: [id], onDelete: Cascade)
+
+  @@index([status, remindAt]) // lu chaque minute par le planificateur
+  @@map("event_reminders")
+}
+
+model Notification {
+  id        String           @id @default(uuid()) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  title     String
+  body      String
+  data      Json? // identifiants pour ouvrir le bon écran
+  sentAt    DateTime?
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model NotificationPreference {
+  userId             String   @id @db.Uuid
+  eventsEnabled      Boolean  @default(true)
+  streakReminder     Boolean  @default(true)
+  streakReminderTime String   @default("18:00") // HH:mm, heure du Burkina Faso
+  forumEnabled       Boolean  @default(true)
+  updatedAt          DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notification_preferences")
+}
+
+model DeviceToken {
+  id         String         @id @default(uuid()) @db.Uuid
+  userId     String         @db.Uuid
+  token      String         @unique // jeton Firebase Cloud Messaging
+  platform   DevicePlatform
+  appVersion String?
+  lastSeenAt DateTime       @default(now())
+  createdAt  DateTime       @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("device_tokens")
+}
+
+// =============================================================================
+// ACTIVITÉ ET FLAMME (gamification)
+// =============================================================================
+
+// Source de vérité de la flamme : jamais modifié ni supprimé.
+model ActivityLog {
+  id           String          @id @default(uuid()) @db.Uuid
+  userId       String          @db.Uuid
+  clientId     String          @db.Uuid // identifiant généré par l'appareil (idempotence)
+  type         ActivityType
+  activityDate DateTime        @db.Date // jour d'activité (heure du Burkina Faso = UTC)
+  occurredAt   DateTime
+  refType      ActivityRefType
+  refId        String          @db.Uuid
+  createdAt    DateTime        @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, clientId])
+  @@index([userId, activityDate])
+  @@map("activity_logs")
+}
+
+// Cache : recalculable à partir d'ActivityLog.
+model UserStreak {
+  userId         String    @id @db.Uuid
+  currentStreak  Int       @default(0)
+  longestStreak  Int       @default(0)
+  lastActiveDate DateTime? @db.Date
+  updatedAt      DateTime  @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("user_streaks")
+}
+
+// =============================================================================
+// CONTRIBUTIONS DES ÉLÈVES (contributions)
+// =============================================================================
+
+model Contribution {
+  id              String             @id @default(uuid()) @db.Uuid
+  classId         String             @db.Uuid
+  classSubjectId  String?            @db.Uuid
+  authorId        String             @db.Uuid
+  title           String
+  description     String?
+  status          ContributionStatus @default(EN_ATTENTE)
+  fileKey         String             @unique
+  fileMimeType    String
+  fileSizeBytes   Int
+  rejectionReason String?
+  reviewedById    String?            @db.Uuid
+  reviewedAt      DateTime?
+  ratingAvg       Decimal            @default(0) @db.Decimal(3, 2) // cache
+  ratingCount     Int                @default(0) // cache
+  createdAt       DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  class        Class                @relation(fields: [classId], references: [id])
+  classSubject ClassSubject?        @relation(fields: [classSubjectId, classId], references: [id, classId])
+  author       User                 @relation("ContributionAuthor", fields: [authorId], references: [id])
+  reviewedBy   User?                @relation("ContributionReviewer", fields: [reviewedById], references: [id])
+  ratings      ContributionRating[]
+  reports      Report[]
+
+  @@index([classId, status, createdAt])
+  @@index([authorId])
+  @@index([status, createdAt]) // file de modération
+  @@map("contributions")
+}
+
+model ContributionRating {
+  id             String   @id @default(uuid()) @db.Uuid
+  contributionId String   @db.Uuid
+  raterId        String   @db.Uuid
+  score          Int // 1 à 5 (CHECK en SQL)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  contribution Contribution @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  rater        User         @relation(fields: [raterId], references: [id])
+
+  @@unique([contributionId, raterId])
+  @@map("contribution_ratings")
+}
+
+// =============================================================================
+// FORUM (forum)
+// =============================================================================
+
+model ForumThread {
+  id             String      @id @default(uuid()) @db.Uuid
+  classId        String      @db.Uuid
+  classSubjectId String?     @db.Uuid
+  authorId       String      @db.Uuid
+  title          String
+  body           String      @db.Text
+  status         ForumStatus @default(VISIBLE)
+  answersCount   Int         @default(0) // cache
+  lastActivityAt DateTime    @default(now())
+  hiddenAt       DateTime?
+  hiddenReason   String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  class        Class         @relation(fields: [classId], references: [id])
+  classSubject ClassSubject? @relation(fields: [classSubjectId, classId], references: [id, classId])
+  author       User          @relation("ThreadAuthor", fields: [authorId], references: [id])
+  answers      ForumAnswer[]
+  reports      Report[]
+
+  @@unique([id, classId])
+  @@index([classId, status, lastActivityAt(sort: Desc)])
+  @@map("forum_threads")
+}
+
+model ForumAnswer {
+  id           String      @id @default(uuid()) @db.Uuid
+  threadId     String      @db.Uuid
+  classId      String      @db.Uuid // dénormalisé, cohérent avec le fil
+  authorId     String      @db.Uuid
+  body         String      @db.Text
+  status       ForumStatus @default(VISIBLE)
+  likesCount   Int         @default(0) // cache
+  hiddenAt     DateTime?
+  hiddenReason String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
+
+  thread  ForumThread  @relation(fields: [threadId, classId], references: [id, classId], onDelete: Cascade)
+  author  User         @relation("AnswerAuthor", fields: [authorId], references: [id])
+  likes   AnswerLike[]
+  reports Report[]
+
+  // tri : top réponse d'abord
+  @@index([threadId, status, likesCount(sort: Desc), createdAt(sort: Asc)])
+  @@index([authorId])
+  @@map("forum_answers")
+}
+
+model AnswerLike {
+  answerId  String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now())
+
+  answer ForumAnswer @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  user   User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([answerId, userId])
+  @@index([userId])
+  @@map("answer_likes")
+}
+
+// =============================================================================
+// MODÉRATION (moderation)
+// =============================================================================
+
+// Un signalement vise exactement un contenu (CHECK en SQL).
+model Report {
+  id             String       @id @default(uuid()) @db.Uuid
+  reporterId     String       @db.Uuid
+  threadId       String?      @db.Uuid
+  answerId       String?      @db.Uuid
+  contributionId String?      @db.Uuid
+  reason         ReportReason
+  details        String?
+  status         ReportStatus @default(OUVERT)
+  handledById    String?      @db.Uuid
+  handledAt      DateTime?
+  decisionNote   String?
+  createdAt      DateTime     @default(now())
+
+  reporter     User          @relation("ReportReporter", fields: [reporterId], references: [id])
+  handledBy    User?         @relation("ReportHandler", fields: [handledById], references: [id])
+  thread       ForumThread?  @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  answer       ForumAnswer?  @relation(fields: [answerId], references: [id], onDelete: Cascade)
+  contribution Contribution? @relation(fields: [contributionId], references: [id], onDelete: Cascade)
+  sanctions    Sanction[]
+
+  @@unique([reporterId, threadId])
+  @@unique([reporterId, answerId])
+  @@unique([reporterId, contributionId])
+  @@index([status, createdAt]) // file des modérateurs
+  @@index([threadId])
+  @@index([answerId])
+  @@index([contributionId])
+  @@map("reports")
+}
+
+model Sanction {
+  id          String       @id @default(uuid()) @db.Uuid
+  userId      String       @db.Uuid
+  type        SanctionType
+  reason      String
+  startsAt    DateTime     @default(now())
+  endsAt      DateTime? // suspension temporaire
+  issuedById  String       @db.Uuid
+  reportId    String?      @db.Uuid
+  revokedAt   DateTime?
+  revokedById String?      @db.Uuid
+  createdAt   DateTime     @default(now())
+
+  user      User    @relation("SanctionTarget", fields: [userId], references: [id])
+  issuedBy  User    @relation("SanctionIssuer", fields: [issuedById], references: [id])
+  revokedBy User?   @relation("SanctionRevoker", fields: [revokedById], references: [id])
+  report    Report? @relation(fields: [reportId], references: [id])
+
+  @@index([userId, type])
+  @@map("sanctions")
+}
+
+// =============================================================================
+// AUDIT (audit) — entrées immuables
+// =============================================================================
+
+model AuditLog {
+  id         BigInt   @id @default(autoincrement())
+  userId     String?  @db.Uuid // null pour une action système
+  role       Role?
+  action     String // ex. LESSON_PUBLISHED, CONTRIBUTION_REJECTED, ROLE_CHANGED
+  entityType String
+  entityId   String?
+  before     Json?
+  after      Json?
+  ipAddress  String?
+  createdAt  DateTime @default(now())
+
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([entityType, entityId])
+  @@index([userId, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
