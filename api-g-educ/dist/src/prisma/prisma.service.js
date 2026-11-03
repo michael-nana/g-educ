@@ -14,12 +14,69 @@ const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const adapter_pg_1 = require("@prisma/adapter-pg");
 const client_1 = require("../generated/prisma/client");
+const nestjs_cls_1 = require("nestjs-cls");
+const common_2 = require("@nestjs/common");
 let PrismaService = class PrismaService extends client_1.PrismaClient {
-    constructor(config) {
+    scopedClient;
+    constructor(config, cls) {
         const adapter = new adapter_pg_1.PrismaPg({
             connectionString: config.getOrThrow('DATABASE_URL'),
         });
         super({ adapter });
+        const classScopedModels = [
+            'ClassSubject',
+            'Chapter',
+            'Lesson',
+            'Assessment',
+            'Event',
+            'Contribution',
+            'ForumThread',
+            'ForumAnswer',
+        ];
+        this.scopedClient = this.$extends({
+            query: {
+                $allModels: {
+                    async $allOperations({ model, operation, args, query }) {
+                        if (!classScopedModels.includes(model)) {
+                            return query(args);
+                        }
+                        if (cls.get('role') !== 'ELEVE') {
+                            return query(args);
+                        }
+                        const classId = cls.get('classId');
+                        if (!classId) {
+                            throw new common_2.ForbiddenException('Student class is missing from context');
+                        }
+                        const operationArgs = args;
+                        if (operation === 'create' || operation === 'createMany') {
+                            if (operation === 'create') {
+                                operationArgs.data = {
+                                    ...operationArgs.data,
+                                    classId,
+                                };
+                            }
+                            else if (Array.isArray(operationArgs.data)) {
+                                operationArgs.data = operationArgs.data.map((item) => ({ ...item, classId }));
+                            }
+                            else if (operationArgs.data) {
+                                operationArgs.data = {
+                                    ...operationArgs.data,
+                                    classId,
+                                };
+                            }
+                            return query(args);
+                        }
+                        if (operationArgs.where) {
+                            operationArgs.where = { ...operationArgs.where, classId };
+                        }
+                        else {
+                            operationArgs.where = { classId };
+                        }
+                        return query(args);
+                    },
+                },
+            },
+        });
     }
     async onModuleInit() {
         await this.$connect();
@@ -31,6 +88,6 @@ let PrismaService = class PrismaService extends client_1.PrismaClient {
 exports.PrismaService = PrismaService;
 exports.PrismaService = PrismaService = __decorate([
     (0, common_1.Injectable)(),
-    __metadata("design:paramtypes", [config_1.ConfigService])
+    __metadata("design:paramtypes", [config_1.ConfigService, nestjs_cls_1.ClsService])
 ], PrismaService);
 //# sourceMappingURL=prisma.service.js.map
