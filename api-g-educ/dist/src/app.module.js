@@ -21,6 +21,7 @@ const app_service_1 = require("./app.service");
 const auth_module_1 = require("./modules/auth/auth.module");
 const audit_module_1 = require("./modules/audit/audit.module");
 const academics_module_1 = require("./modules/academics/academics.module");
+const users_module_1 = require("./modules/users/users.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -47,6 +48,7 @@ exports.AppModule = AppModule = __decorate([
             auth_module_1.AuthModule,
             audit_module_1.AuditModule,
             academics_module_1.AcademicsModule,
+            users_module_1.UsersModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
