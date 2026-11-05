@@ -15,6 +15,7 @@ import { AuthModule } from './modules/auth/auth.module';
 import { AuditModule } from './modules/audit/audit.module';
 import { AcademicsModule } from './modules/academics/academics.module';
 import { UsersModule } from './modules/users/users.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { UsersModule } from './modules/users/users.module';
     AuditModule,
     AcademicsModule,
     UsersModule,
+    GamificationModule,
   ],
   controllers: [AppController],
   providers: [

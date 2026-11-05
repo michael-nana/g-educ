@@ -22,6 +22,7 @@ const auth_module_1 = require("./modules/auth/auth.module");
 const audit_module_1 = require("./modules/audit/audit.module");
 const academics_module_1 = require("./modules/academics/academics.module");
 const users_module_1 = require("./modules/users/users.module");
+const gamification_module_1 = require("./modules/gamification/gamification.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -49,6 +50,7 @@ exports.AppModule = AppModule = __decorate([
             audit_module_1.AuditModule,
             academics_module_1.AcademicsModule,
             users_module_1.UsersModule,
+            gamification_module_1.GamificationModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
