@@ -67,11 +67,14 @@ export class AuthController {
     return this.authService.refresh(dto.refreshToken);
   }
 
-  @Post('logout')
-  @ApiOperation({ summary: 'Révoquer une session' })
-  logout(@Body() dto: LogoutDto) {
-    return this.authService.logout(dto.refreshToken);
-  }
+@Post('logout')
+@ApiOperation({ summary: 'Révoquer une session' })
+logout(@Body() dto: LogoutDto) {
+  return this.authService.logout(
+    dto.refreshToken,
+    dto.deviceToken,
+  );
+}
 
   @Post('forgot-password')
   @ApiOperation({ summary: 'Demander un code de réinitialisation' })

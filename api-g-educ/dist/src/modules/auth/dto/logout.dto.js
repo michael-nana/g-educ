@@ -14,6 +14,7 @@ const swagger_1 = require("@nestjs/swagger");
 const class_validator_1 = require("class-validator");
 class LogoutDto {
     refreshToken;
+    deviceToken;
 }
 exports.LogoutDto = LogoutDto;
 __decorate([
@@ -22,4 +23,14 @@ __decorate([
     (0, class_validator_1.MinLength)(20),
     __metadata("design:type", String)
 ], LogoutDto.prototype, "refreshToken", void 0);
+__decorate([
+    (0, swagger_1.ApiPropertyOptional)({
+        description: 'Token FCM de l’appareil à désenregistrer',
+    }),
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.MinLength)(1),
+    (0, class_validator_1.MaxLength)(4096),
+    __metadata("design:type", String)
+], LogoutDto.prototype, "deviceToken", void 0);
 //# sourceMappingURL=logout.dto.js.map

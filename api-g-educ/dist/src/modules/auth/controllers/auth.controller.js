@@ -48,7 +48,7 @@ let AuthController = class AuthController {
         return this.authService.refresh(dto.refreshToken);
     }
     logout(dto) {
-        return this.authService.logout(dto.refreshToken);
+        return this.authService.logout(dto.refreshToken, dto.deviceToken);
     }
     forgotPassword(dto) {
         return this.authService.forgotPassword(dto.phone);

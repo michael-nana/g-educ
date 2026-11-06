@@ -145,19 +145,26 @@ let RefreshTokenService = class RefreshTokenService {
             },
             select: {
                 id: true,
+                userId: true,
                 revokedAt: true,
             },
         });
-        if (!storedToken || storedToken.revokedAt) {
-            return;
+        if (!storedToken) {
+            return null;
         }
-        await this.prisma.refreshToken.update({
-            where: { id: storedToken.id },
-            data: {
-                revokedAt: new Date(),
-                lastUsedAt: new Date(),
-            },
-        });
+        if (!storedToken.revokedAt) {
+            await this.prisma.refreshToken.updateMany({
+                where: {
+                    id: storedToken.id,
+                    revokedAt: null,
+                },
+                data: {
+                    revokedAt: new Date(),
+                    lastUsedAt: new Date(),
+                },
+            });
+        }
+        return storedToken.userId;
     }
     async revokeAllForUser(userId) {
         await this.prisma.refreshToken.updateMany({

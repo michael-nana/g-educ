@@ -261,8 +261,16 @@ let AuthService = class AuthService {
     async refresh(refreshToken) {
         return this.refreshTokenService.rotate(refreshToken);
     }
-    async logout(refreshToken) {
-        await this.refreshTokenService.revoke(refreshToken);
+    async logout(refreshToken, deviceToken) {
+        const userId = await this.refreshTokenService.revoke(refreshToken);
+        if (userId && deviceToken) {
+            await this.prisma.deviceToken.deleteMany({
+                where: {
+                    userId,
+                    token: deviceToken,
+                },
+            });
+        }
         return {
             message: 'Déconnexion effectuée',
         };

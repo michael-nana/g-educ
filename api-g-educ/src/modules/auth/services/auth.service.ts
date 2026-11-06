@@ -317,13 +317,22 @@ export class AuthService {
     return this.refreshTokenService.rotate(refreshToken);
   }
 
-  async logout(refreshToken: string) {
-    await this.refreshTokenService.revoke(refreshToken);
+async logout(refreshToken: string, deviceToken?: string) {
+  const userId = await this.refreshTokenService.revoke(refreshToken);
 
-    return {
-      message: 'Déconnexion effectuée',
-    };
+  if (userId && deviceToken) {
+    await this.prisma.deviceToken.deleteMany({
+      where: {
+        userId,
+        token: deviceToken,
+      },
+    });
   }
+
+  return {
+    message: 'Déconnexion effectuée',
+  };
+}
 
   async forgotPassword(phone: string) {
     await this.otpService.requestCode(

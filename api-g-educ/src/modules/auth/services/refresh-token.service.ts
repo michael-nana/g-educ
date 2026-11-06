@@ -192,29 +192,37 @@ export class RefreshTokenService {
     };
   }
 
-  async revoke(refreshToken: string): Promise<void> {
-    const storedToken = await this.prisma.refreshToken.findUnique({
+  async revoke(refreshToken: string): Promise<string | null> {
+  const storedToken = await this.prisma.refreshToken.findUnique({
+    where: {
+      tokenHash: this.hashToken(refreshToken),
+    },
+    select: {
+      id: true,
+      userId: true,
+      revokedAt: true,
+    },
+  });
+
+  if (!storedToken) {
+    return null;
+  }
+
+  if (!storedToken.revokedAt) {
+    await this.prisma.refreshToken.updateMany({
       where: {
-        tokenHash: this.hashToken(refreshToken),
+        id: storedToken.id,
+        revokedAt: null,
       },
-      select: {
-        id: true,
-        revokedAt: true,
-      },
-    });
-
-    if (!storedToken || storedToken.revokedAt) {
-      return;
-    }
-
-    await this.prisma.refreshToken.update({
-      where: { id: storedToken.id },
       data: {
         revokedAt: new Date(),
         lastUsedAt: new Date(),
       },
     });
   }
+
+  return storedToken.userId;
+}
 
   async revokeAllForUser(userId: string): Promise<void> {
     await this.prisma.refreshToken.updateMany({

@@ -24,7 +24,7 @@ export declare class RefreshTokenService {
         refreshToken: string;
         expiresIn: number;
     }>;
-    revoke(refreshToken: string): Promise<void>;
+    revoke(refreshToken: string): Promise<string | null>;
     revokeAllForUser(userId: string): Promise<void>;
 }
 export {};

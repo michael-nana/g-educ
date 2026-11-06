@@ -58,7 +58,7 @@ export declare class AuthService {
         refreshToken: string;
         expiresIn: number;
     }>;
-    logout(refreshToken: string): Promise<{
+    logout(refreshToken: string, deviceToken?: string): Promise<{
         message: string;
     }>;
     forgotPassword(phone: string): Promise<{

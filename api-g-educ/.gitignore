@@ -4,3 +4,4 @@ node_modules
 DATABASE_URL="postgresql://postgres:1234@localhost:5432/g_educ?schema=public"
 /generated/prisma
 dist-seed
+firebase-service-account.json
