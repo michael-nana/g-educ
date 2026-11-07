@@ -18,6 +18,7 @@ import { AcademicsModule } from './modules/academics/academics.module';
 import { UsersModule } from './modules/users/users.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { CoursesModule } from './modules/courses/courses.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { NotificationsModule } from './modules/notifications/notifications.modul
     GamificationModule,
     ScheduleModule.forRoot(),
     NotificationsModule,
+    CoursesModule,
   ],
   controllers: [AppController],
   providers: [
