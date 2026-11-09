@@ -19,6 +19,9 @@ import { UsersModule } from './modules/users/users.module';
 import { GamificationModule } from './modules/gamification/gamification.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { CoursesModule } from './modules/courses/courses.module';
+import { AssessmentsModule } from './modules/assessments/assessments.module';
+import { EventsModule } from './modules/events/events.module';
+import { PlannerModule } from './modules/planner/planner.module';
 
 @Module({
   imports: [
@@ -49,6 +52,9 @@ import { CoursesModule } from './modules/courses/courses.module';
     ScheduleModule.forRoot(),
     NotificationsModule,
     CoursesModule,
+    AssessmentsModule,
+    EventsModule,
+    PlannerModule,
   ],
   controllers: [AppController],
   providers: [

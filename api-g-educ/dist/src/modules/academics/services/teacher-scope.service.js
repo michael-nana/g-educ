@@ -47,6 +47,36 @@ let TeacherScopeService = class TeacherScopeService {
         }
         return classSubject;
     }
+    async assertCanManageClass(user, classId) {
+        const classExists = await this.prisma.class.findUnique({
+            where: { id: classId },
+            select: { id: true },
+        });
+        if (!classExists) {
+            throw new common_1.NotFoundException('Classe introuvable');
+        }
+        if (user.role === 'ADMINISTRATEUR') {
+            return classExists;
+        }
+        if (user.role !== 'ENSEIGNANT') {
+            throw new common_1.ForbiddenException('Vous ne pouvez pas gérer les événements de cette classe');
+        }
+        const assignment = await this.prisma.teacherAssignment.findFirst({
+            where: {
+                userId: user.id,
+                classSubject: {
+                    classId,
+                },
+            },
+            select: {
+                id: true,
+            },
+        });
+        if (!assignment) {
+            throw new common_1.ForbiddenException('Vous n’êtes affecté à aucune matière de cette classe');
+        }
+        return classExists;
+    }
 };
 exports.TeacherScopeService = TeacherScopeService;
 exports.TeacherScopeService = TeacherScopeService = __decorate([

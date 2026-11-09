@@ -10,4 +10,10 @@ export declare class TeacherScopeService {
         classId: string;
         subjectId: string;
     }>;
+    assertCanManageClass(user: {
+        id: string;
+        role: string;
+    }, classId: string): Promise<{
+        id: string;
+    }>;
 }

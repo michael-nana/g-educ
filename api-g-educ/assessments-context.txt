@@ -1,0 +1,3904 @@
+﻿CONTEXTE TECHNIQUE - MODULE ASSESSMENTS G-EDUC
+Projet : B:\G-educ\g-educ\api-g-educ
+Date : 11/09/2026 09:23:19
+Nombre de fichiers : 40
+
+
+============================================================
+FICHIER : src\app.module.ts
+============================================================
+
+
+import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { ClsModule } from 'nestjs-cls';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { APP_GUARD } from '@nestjs/core';
+import { validateEnvironment } from './common/config/environment.validation';
+import { SmsModule } from './common/sms/sms.module';
+import { ContextClsModule } from './common/cls/cls.module';
+import { ScheduleModule } from '@nestjs/schedule';
+
+import { PrismaModule } from './prisma/prisma.module';
+import { AppController } from './app.controller';
+import { AppService } from './app.service';
+import { AuthModule } from './modules/auth/auth.module';
+import { AuditModule } from './modules/audit/audit.module';
+import { AcademicsModule } from './modules/academics/academics.module';
+import { UsersModule } from './modules/users/users.module';
+import { GamificationModule } from './modules/gamification/gamification.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { CoursesModule } from './modules/courses/courses.module';
+import { AssessmentsModule } from './modules/assessments/assessments.module';
+
+@Module({
+  imports: [
+    ConfigModule.forRoot({
+      isGlobal: true,
+      validate: validateEnvironment,
+    }),
+    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 30 }]),
+
+    ClsModule.forRoot({
+      global: true,
+      middleware: {
+        mount: true,
+        setup: (cls, req) => {
+          cls.set('ipAddress', req.ip);
+        },
+      },
+    }),
+
+    PrismaModule,
+    SmsModule,
+    ContextClsModule,
+    AuthModule,
+    AuditModule,
+    AcademicsModule,
+    UsersModule,
+    GamificationModule,
+    ScheduleModule.forRoot(),
+    NotificationsModule,
+    CoursesModule,
+    AssessmentsModule,
+  ],
+  controllers: [AppController],
+  providers: [
+    AppService,
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
+    
+  ],
+})
+export class AppModule {}
+
+
+============================================================
+FICHIER : src\common\cls\cls-context.service.ts
+============================================================
+
+
+import { Injectable } from '@nestjs/common';
+import { ClsService } from 'nestjs-cls';
+
+import type { ClsStore } from './cls-store.interface';
+
+@Injectable()
+export class ClsContextService {
+  constructor(
+    private readonly cls: ClsService<ClsStore>,
+  ) {}
+
+  get userId(): string | undefined {
+    return this.cls.get('userId');
+  }
+
+  get role(): ClsStore['role'] {
+    return this.cls.get('role');
+  }
+
+  get classId(): string | null | undefined {
+    return this.cls.get('classId');
+  }
+
+  get status(): ClsStore['status'] {
+    return this.cls.get('status');
+  }
+
+  get canPublish(): boolean | undefined {
+    return this.cls.get('canPublish');
+  }
+
+  get ipAddress(): string | undefined {
+    return this.cls.get('ipAddress');
+  }
+
+  setUserContext(context: Pick<
+    ClsStore,
+    'userId' | 'role' | 'classId' | 'status' | 'canPublish'
+  >): void {
+    this.cls.set('userId', context.userId);
+    this.cls.set('role', context.role);
+    this.cls.set('classId', context.classId);
+    this.cls.set('status', context.status);
+    this.cls.set('canPublish', context.canPublish);
+  }
+}
+
+
+============================================================
+FICHIER : src\main.ts
+============================================================
+
+import { NestFactory } from '@nestjs/core';
+import { AppModule } from './app.module';
+import { ValidationPipe } from '@nestjs/common';
+import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import compression from 'compression';
+import helmet from 'helmet';
+import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { SerializationInterceptor } from './common/interceptors/serialization.interceptor';
+
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule);
+  app.setGlobalPrefix('api/v1');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      forbidNonWhitelisted: true,
+      transform: true,
+    }),
+  );
+  app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalInterceptors(new SerializationInterceptor());
+  app.use(compression());
+  app.use(helmet());
+  app.enableCors({
+    origin: process.env.CORS_ORIGINS?.split(',').map((origin) => origin.trim()) ?? false,
+    credentials: true,
+  });
+
+  const config = new DocumentBuilder()
+    .setTitle('G-Educ API')
+    .setDescription('API backend de la plateforme G-Educ')
+    .setVersion('1.0')
+    .addBearerAuth()
+    .build();
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document);
+
+  await app.listen(process.env.PORT ?? 3000);
+}
+bootstrap();
+
+
+============================================================
+FICHIER : src\modules\academics\academics.module.ts
+============================================================
+
+import { Module } from '@nestjs/common';
+
+import { AuthModule } from '../auth/auth.module';
+import { AuditModule } from '../audit/audit.module';
+
+import { AcademicYearsController } from './controllers/academic-years.controller';
+import { ClassesController } from './controllers/classes.controller';
+import { SubjectsController } from './controllers/subjects.controller';
+import { ClassSubjectsController } from './controllers/class-subjects.controller';
+import { MeSubjectsController } from './controllers/me-subjects.controller';
+import { ChaptersController } from './controllers/chapters.controller';
+
+import { AcademicYearsService } from './services/academic-years.service';
+import { ClassesService } from './services/classes.service';
+import { SubjectsService } from './services/subjects.service';
+import { ClassSubjectsService } from './services/class-subjects.service';
+import { MeSubjectsService } from './services/me-subjects.service';
+import { TeacherScopeService } from './services/teacher-scope.service';
+import { ChaptersService } from './services/chapters.service';
+
+@Module({
+  imports: [
+    AuthModule,
+    AuditModule,
+  ],
+  controllers: [
+    AcademicYearsController,
+    ClassesController,
+    SubjectsController,
+    ClassSubjectsController,
+    MeSubjectsController,
+    ChaptersController,
+  ],
+  providers: [
+    AcademicYearsService,
+    ClassesService,
+    SubjectsService,
+    ClassSubjectsService,
+    MeSubjectsService,
+    TeacherScopeService,
+    ChaptersService,
+  ],
+  exports: [
+    AcademicYearsService,
+    ClassesService,
+    SubjectsService,
+    ClassSubjectsService,
+    MeSubjectsService,
+    TeacherScopeService,
+    ChaptersService,
+  ],
+})
+export class AcademicsModule {}
+
+============================================================
+FICHIER : src\modules\academics\controllers\academic-years.controller.ts
+============================================================
+
+import {
+  Body,
+  Controller,
+  Get,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+import { Role } from '../../../generated/prisma/client';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+
+import { CreateAcademicYearDto } from '../dto/create-academic-year.dto';
+import { AcademicYearsService } from '../services/academic-years.service';
+
+@Controller('academic-years')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class AcademicYearsController {
+  constructor(
+    private readonly academicYearsService: AcademicYearsService,
+  ) {}
+
+  @Get('current')
+  findCurrent() {
+    return this.academicYearsService.findCurrent();
+  }
+
+  @Post()
+  @Roles(Role.ADMINISTRATEUR)
+  create(@Body() dto: CreateAcademicYearDto) {
+    return this.academicYearsService.create(dto);
+  }
+}
+
+============================================================
+FICHIER : src\modules\academics\controllers\chapters.controller.ts
+============================================================
+
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  Query,
+  UseGuards,
+  Put,
+} from '@nestjs/common';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+
+import type { AuthenticatedUser } from '../../auth/decorators/current-user.decorator';
+
+import { ChaptersService } from '../services/chapters.service';
+
+import { CreateChapterDto } from '../dto/create-chapter.dto';
+import { UpdateChapterDto } from '../dto/update-chapter.dto';
+import { ReorderChaptersDto } from '../dto/reorder-chapters.dto';
+
+@Controller()
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class ChaptersController {
+  constructor(
+    private readonly chaptersService: ChaptersService,
+  ) {}
+
+  @Post('class-subjects/:classSubjectId/chapters')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  create(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('classSubjectId', ParseUUIDPipe) classSubjectId: string,
+    @Body() dto: CreateChapterDto,
+  ) {
+    return this.chaptersService.create(
+      user,
+      classSubjectId,
+      dto,
+    );
+  }
+
+  @Patch('chapters/:id')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  update(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateChapterDto,
+  ) {
+    return this.chaptersService.update(user, id, dto);
+  }
+
+  @Post('chapters/:id/publish')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  publish(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.chaptersService.publish(user, id);
+  }
+
+  @Post('chapters/:id/archive')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  archive(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.chaptersService.archive(user, id);
+  }
+
+  @Put('class-subjects/:classSubjectId/chapters/order')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  reorder(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('classSubjectId', ParseUUIDPipe) classSubjectId: string,
+    @Body() dto: ReorderChaptersDto,
+  ) {
+    return this.chaptersService.reorder(
+      user,
+      classSubjectId,
+      dto,
+    );
+  }
+
+  @Get('me/chapters')
+  @Roles('ELEVE')
+  findMyChapters(
+    @CurrentUser() user: AuthenticatedUser,
+    @Query('classSubjectId') classSubjectId?: string,
+  ) {
+    return this.chaptersService.findMyChapters(
+      user,
+      classSubjectId,
+    );
+  }
+}
+
+============================================================
+FICHIER : src\modules\academics\controllers\classes.controller.ts
+============================================================
+
+
+import { Controller, Get } from '@nestjs/common';
+
+import { ClassesService } from '../services/classes.service';
+
+@Controller('classes')
+export class ClassesController {
+  constructor(private readonly classesService: ClassesService) {}
+
+  @Get()
+  findAll() {
+    return this.classesService.findAll();
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\academics\controllers\class-subjects.controller.ts
+============================================================
+
+
+import {
+  Body,
+  Controller,
+  Param,
+  ParseUUIDPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+import { Role } from '../../../generated/prisma/client';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+
+import { AssignSubjectDto } from '../dto/assign-subject.dto';
+import { ClassSubjectsService } from '../services/class-subjects.service';
+
+@Controller('classes/:classId/subjects')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class ClassSubjectsController {
+  constructor(
+    private readonly classSubjectsService: ClassSubjectsService,
+  ) {}
+
+  @Post()
+  @Roles(Role.ADMINISTRATEUR)
+  assign(
+    @Param('classId', new ParseUUIDPipe()) classId: string,
+    @Body() dto: AssignSubjectDto,
+  ) {
+    return this.classSubjectsService.assign(classId, dto);
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\academics\controllers\me-subjects.controller.ts
+============================================================
+
+import {
+  Controller,
+  Get,
+  UseGuards,
+} from '@nestjs/common';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+
+import type { AuthenticatedUser } from '../../auth/decorators/current-user.decorator';
+
+import { MeSubjectsService } from '../services/me-subjects.service';
+
+@Controller('me/subjects')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class MeSubjectsController {
+  constructor(
+    private readonly meSubjectsService: MeSubjectsService,
+  ) {}
+
+  @Get()
+  @Roles('ELEVE')
+  findMySubjects(
+    @CurrentUser() user: AuthenticatedUser,
+  ) {
+    return this.meSubjectsService.findMySubjects(user.id);
+  }
+}
+
+============================================================
+FICHIER : src\modules\academics\controllers\subjects.controller.ts
+============================================================
+
+
+import {
+  Body,
+  Controller,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
+
+import { Role } from '../../../generated/prisma/client';
+
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+
+import { CreateSubjectDto } from '../dto/create-subject.dto';
+import { UpdateSubjectDto } from '../dto/update-subject.dto';
+import { SubjectsService } from '../services/subjects.service';
+
+@Controller('subjects')
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class SubjectsController {
+  constructor(
+    private readonly subjectsService: SubjectsService,
+  ) {}
+
+  @Post()
+  @Roles(Role.ADMINISTRATEUR)
+  create(@Body() dto: CreateSubjectDto) {
+    return this.subjectsService.create(dto);
+  }
+
+  @Patch(':id')
+  @Roles(Role.ADMINISTRATEUR)
+  update(
+    @Param('id', new ParseUUIDPipe()) id: string,
+    @Body() dto: UpdateSubjectDto,
+  ) {
+    return this.subjectsService.update(id, dto);
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\academics\services\academic-years.service.ts
+============================================================
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditService } from '../../audit/services/audit.service';
+import { AUDIT_ACTIONS } from '../../audit/constants/audit-actions.constants';
+
+import type { CreateAcademicYearDto } from '../dto/create-academic-year.dto';
+
+@Injectable()
+export class AcademicYearsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+  ) {}
+
+  async findCurrent() {
+    const academicYear = await this.prisma.academicYear.findFirst({
+      where: {
+        isCurrent: true,
+      },
+      select: {
+        id: true,
+        label: true,
+        startDate: true,
+        endDate: true,
+        isCurrent: true,
+        createdAt: true,
+      },
+    });
+
+    if (!academicYear) {
+      throw new NotFoundException(
+        'Aucune annÃ©e scolaire courante nâ€™est dÃ©finie.',
+      );
+    }
+
+    return academicYear;
+  }
+
+  async create(dto: CreateAcademicYearDto) {
+    const startDate = new Date(dto.startDate);
+    const endDate = new Date(dto.endDate);
+
+    if (
+      Number.isNaN(startDate.getTime()) ||
+      Number.isNaN(endDate.getTime()) ||
+      startDate >= endDate
+    ) {
+      throw new BadRequestException(
+        'La date de dÃ©but doit Ãªtre antÃ©rieure Ã  la date de fin.',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      // DÃ©sactiver l'annÃ©e scolaire actuellement courante.
+      await tx.academicYear.updateMany({
+        where: {
+          isCurrent: true,
+        },
+        data: {
+          isCurrent: false,
+        },
+      });
+
+      // CrÃ©er la nouvelle annÃ©e comme annÃ©e courante.
+      const academicYear = await tx.academicYear.create({
+        data: {
+          label: dto.label.trim(),
+          startDate,
+          endDate,
+          isCurrent: true,
+        },
+        select: {
+          id: true,
+          label: true,
+          startDate: true,
+          endDate: true,
+          isCurrent: true,
+          createdAt: true,
+        },
+      });
+
+      // Enregistrer l'action dans la mÃªme transaction.
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.ACADEMIC_YEAR_CREATED,
+          entityType: 'AcademicYear',
+          entityId: academicYear.id,
+          after: {
+            label: academicYear.label,
+            startDate: academicYear.startDate.toISOString(),
+            endDate: academicYear.endDate.toISOString(),
+            isCurrent: academicYear.isCurrent,
+          },
+        },
+        tx,
+      );
+
+      return academicYear;
+    });
+  }
+}
+
+============================================================
+FICHIER : src\modules\academics\services\chapters.service.ts
+============================================================
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditService } from '../../audit/services/audit.service';
+import { AUDIT_ACTIONS } from '../../audit/constants/audit-actions.constants';
+
+import { TeacherScopeService } from './teacher-scope.service';
+
+import type { CreateChapterDto } from '../dto/create-chapter.dto';
+import type { UpdateChapterDto } from '../dto/update-chapter.dto';
+import type { ReorderChaptersDto } from '../dto/reorder-chapters.dto';
+
+@Injectable()
+export class ChaptersService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    private readonly teacherScope: TeacherScopeService,
+  ) {}
+
+  async create(
+    user: { id: string; role: string },
+    classSubjectId: string,
+    dto: CreateChapterDto,
+  ) {
+    const classSubject = await this.teacherScope.assertCanManage(
+      user,
+      classSubjectId,
+    );
+
+    const title = dto.title.trim();
+
+    if (!title) {
+      throw new BadRequestException('Le titre est obligatoire');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const chapter = await tx.chapter.create({
+        data: {
+          classSubjectId,
+          classId: classSubject.classId,
+          title,
+          description: dto.description?.trim() || null,
+          position: dto.position ?? 0,
+          createdById: user.id,
+        },
+        select: {
+          id: true,
+          classSubjectId: true,
+          classId: true,
+          title: true,
+          description: true,
+          position: true,
+          status: true,
+          version: true,
+          createdById: true,
+          publishedAt: true,
+          createdAt: true,
+          updatedAt: true,
+        },
+      });
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.CHAPTER_CREATED,
+          entityType: 'Chapter',
+          entityId: chapter.id,
+          after: {
+            title: chapter.title,
+            classId: chapter.classId,
+            classSubjectId: chapter.classSubjectId,
+          },
+        },
+        tx,
+      );
+
+      return chapter;
+    });
+  }
+
+  async update(
+    user: { id: string; role: string },
+    chapterId: string,
+    dto: UpdateChapterDto,
+  ) {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+    });
+
+    if (!chapter) {
+      throw new NotFoundException('Chapitre introuvable');
+    }
+
+    await this.teacherScope.assertCanManage(
+      user,
+      chapter.classSubjectId,
+    );
+
+    if (
+      dto.title === undefined &&
+      dto.description === undefined &&
+      dto.position === undefined
+    ) {
+      throw new BadRequestException(
+        'Aucune modification fournie',
+      );
+    }
+
+    const data = {
+      ...(dto.title !== undefined && {
+        title: dto.title.trim(),
+      }),
+      ...(dto.description !== undefined && {
+        description: dto.description.trim() || null,
+      }),
+      ...(dto.position !== undefined && {
+        position: dto.position,
+      }),
+      ...(chapter.status === 'PUBLIE' && {
+        version: { increment: 1 },
+      }),
+    };
+
+    if (dto.title !== undefined && !dto.title.trim()) {
+      throw new BadRequestException('Le titre est obligatoire');
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.chapter.update({
+        where: { id: chapterId },
+        data,
+      });
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.CHAPTER_UPDATED,
+          entityType: 'Chapter',
+          entityId: chapterId,
+          before: {
+            title: chapter.title,
+            description: chapter.description,
+            position: chapter.position,
+            version: chapter.version,
+          },
+          after: {
+            title: updated.title,
+            description: updated.description,
+            position: updated.position,
+            version: updated.version,
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  async publish(
+    user: { id: string; role: string; canPublish: boolean },
+    chapterId: string,
+  ) {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+    });
+
+    if (!chapter) {
+      throw new NotFoundException('Chapitre introuvable');
+    }
+
+    await this.teacherScope.assertCanManage(
+      user,
+      chapter.classSubjectId,
+    );
+
+    if (
+      user.role !== 'ADMINISTRATEUR' &&
+      !user.canPublish
+    ) {
+      throw new BadRequestException(
+        'Vous ne disposez pas du droit de publication',
+      );
+    }
+
+    if (chapter.status === 'PUBLIE') {
+      throw new BadRequestException(
+        'Ce chapitre est dÃ©jÃ  publiÃ©',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.chapter.update({
+        where: { id: chapterId },
+        data: {
+          status: 'PUBLIE',
+          publishedAt: new Date(),
+        },
+      });
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.CHAPTER_PUBLISHED,
+          entityType: 'Chapter',
+          entityId: chapterId,
+          before: {
+            status: chapter.status,
+          },
+          after: {
+            status: updated.status,
+            publishedAt: updated.publishedAt?.toISOString(),
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  async archive(
+    user: { id: string; role: string },
+    chapterId: string,
+  ) {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+    });
+
+    if (!chapter) {
+      throw new NotFoundException('Chapitre introuvable');
+    }
+
+    await this.teacherScope.assertCanManage(
+      user,
+      chapter.classSubjectId,
+    );
+
+    if (chapter.status === 'ARCHIVE') {
+      throw new BadRequestException(
+        'Ce chapitre est dÃ©jÃ  archivÃ©',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.chapter.update({
+        where: { id: chapterId },
+        data: {
+          status: 'ARCHIVE',
+        },
+      });
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.CHAPTER_ARCHIVED,
+          entityType: 'Chapter',
+          entityId: chapterId,
+          before: {
+            status: chapter.status,
+          },
+          after: {
+            status: updated.status,
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  async reorder(
+    user: { id: string; role: string },
+    classSubjectId: string,
+    dto: ReorderChaptersDto,
+  ) {
+    await this.teacherScope.assertCanManage(
+      user,
+      classSubjectId,
+    );
+
+    const chapters = await this.prisma.chapter.findMany({
+      where: { classSubjectId },
+      select: {
+        id: true,
+        position: true,
+      },
+    });
+
+    const requestedIds = dto.chapterIds;
+
+    if (
+      chapters.length !== requestedIds.length ||
+      chapters.some(
+        (chapter) => !requestedIds.includes(chapter.id),
+      )
+    ) {
+      throw new BadRequestException(
+        'La liste doit contenir exactement tous les chapitres de cette matiÃ¨re',
+      );
+    }
+
+    await this.prisma.$transaction(async (tx) => {
+      for (const [index, id] of requestedIds.entries()) {
+        await tx.chapter.update({
+          where: { id },
+          data: { position: index },
+        });
+      }
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.CHAPTERS_REORDERED,
+          entityType: 'ClassSubject',
+          entityId: classSubjectId,
+          after: {
+            chapterIds: requestedIds,
+          },
+        },
+        tx,
+      );
+    });
+
+    return this.prisma.chapter.findMany({
+      where: { classSubjectId },
+      orderBy: { position: 'asc' },
+      select: {
+        id: true,
+        title: true,
+        position: true,
+        status: true,
+      },
+    });
+  }
+
+  async findMyChapters(
+    user: { id: string; role: string; classId: string | null },
+    classSubjectId?: string,
+  ) {
+    if (user.role !== 'ELEVE') {
+      throw new BadRequestException(
+        'Cette fonctionnalitÃ© est rÃ©servÃ©e aux Ã©lÃ¨ves',
+      );
+    }
+
+    if (!user.classId) {
+      throw new NotFoundException(
+        'Aucune classe associÃ©e Ã  votre profil',
+      );
+    }
+
+    return this.prisma.chapter.findMany({
+      where: {
+        classId: user.classId,
+        status: 'PUBLIE',
+        ...(classSubjectId && { classSubjectId }),
+      },
+      select: {
+        id: true,
+        title: true,
+        description: true,
+        position: true,
+        version: true,
+        publishedAt: true,
+        classSubject: {
+          select: {
+            id: true,
+            subject: {
+              select: {
+                id: true,
+                name: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: [
+        { classSubjectId: 'asc' },
+        { position: 'asc' },
+      ],
+    });
+  }
+}
+
+============================================================
+FICHIER : src\modules\academics\services\classes.service.ts
+============================================================
+
+
+import { Injectable } from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+
+@Injectable()
+export class ClassesService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findAll() {
+    return this.prisma.class.findMany({
+      select: {
+        id: true,
+        code: true,
+        label: true,
+        cycle: true,
+        level: true,
+        series: true,
+        position: true,
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    });
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\academics\services\class-subjects.service.ts
+============================================================
+
+
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+import type { AssignSubjectDto } from '../dto/assign-subject.dto';
+
+@Injectable()
+export class ClassSubjectsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async assign(classId: string, dto: AssignSubjectDto) {
+    const schoolClass = await this.prisma.class.findUnique({
+      where: { id: classId },
+      select: { id: true },
+    });
+
+    if (!schoolClass) {
+      throw new NotFoundException('Classe introuvable.');
+    }
+
+    const subject = await this.prisma.subject.findUnique({
+      where: { id: dto.subjectId },
+      select: {
+        id: true,
+        isActive: true,
+      },
+    });
+
+    if (!subject) {
+      throw new NotFoundException('MatiÃ¨re introuvable.');
+    }
+
+    if (!subject.isActive) {
+      throw new ConflictException(
+        'Impossible dâ€™affecter une matiÃ¨re dÃ©sactivÃ©e.',
+      );
+    }
+
+    try {
+      return await this.prisma.classSubject.create({
+        data: {
+          classId,
+          subjectId: dto.subjectId,
+          coefficient: dto.coefficient,
+          position: dto.position ?? 0,
+        },
+        select: {
+          id: true,
+          classId: true,
+          subjectId: true,
+          coefficient: true,
+          position: true,
+          createdAt: true,
+          subject: {
+            select: {
+              id: true,
+              name: true,
+              slug: true,
+            },
+          },
+          class: {
+            select: {
+              id: true,
+              code: true,
+              label: true,
+            },
+          },
+        },
+      });
+    } catch (error) {
+      if (
+        error &&
+        typeof error === 'object' &&
+        'code' in error &&
+        (error as { code: string }).code === 'P2002'
+      ) {
+        throw new ConflictException(
+          'Cette matiÃ¨re est dÃ©jÃ  affectÃ©e Ã  cette classe.',
+        );
+      }
+
+      throw error;
+    }
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\academics\services\me-subjects.service.ts
+============================================================
+
+import {
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+
+@Injectable()
+export class MeSubjectsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async findMySubjects(userId: string) {
+    const profile = await this.prisma.studentProfile.findUnique({
+      where: { userId },
+      select: {
+        classId: true,
+      },
+    });
+
+    if (!profile) {
+      throw new NotFoundException(
+        'Profil Ã©lÃ¨ve introuvable',
+      );
+    }
+
+    return this.prisma.classSubject.findMany({
+      where: {
+        classId: profile.classId,
+        subject: {
+          isActive: true,
+        },
+      },
+      select: {
+        id: true,
+        coefficient: true,
+        position: true,
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+          },
+        },
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    });
+  }
+}
+
+============================================================
+FICHIER : src\modules\academics\services\subjects.service.ts
+============================================================
+
+
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+
+import type { CreateSubjectDto } from '../dto/create-subject.dto';
+import type { UpdateSubjectDto } from '../dto/update-subject.dto';
+
+@Injectable()
+export class SubjectsService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  private generateSlug(name: string): string {
+    return name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '');
+  }
+
+  private handlePrismaError(error: unknown): never {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'code' in error
+    ) {
+      const code = (error as { code: string }).code;
+
+      if (code === 'P2002') {
+        throw new ConflictException(
+          'Une matiÃ¨re avec ce nom ou ce slug existe dÃ©jÃ .',
+        );
+      }
+
+      if (code === 'P2025') {
+        throw new NotFoundException('MatiÃ¨re introuvable.');
+      }
+    }
+
+    throw error;
+  }
+
+  async create(dto: CreateSubjectDto) {
+    const name = dto.name.trim();
+
+    if (!name) {
+      throw new BadRequestException(
+        'Le nom de la matiÃ¨re est obligatoire.',
+      );
+    }
+
+    const slug = this.generateSlug(name);
+
+    if (!slug) {
+      throw new BadRequestException(
+        'Impossible de gÃ©nÃ©rer un slug valide Ã  partir du nom.',
+      );
+    }
+
+    try {
+      return await this.prisma.subject.create({
+        data: {
+          name,
+          slug,
+        },
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+    } catch (error) {
+      this.handlePrismaError(error);
+    }
+  }
+
+  async update(id: string, dto: UpdateSubjectDto) {
+    if (dto.name === undefined && dto.isActive === undefined) {
+      throw new BadRequestException(
+        'Au moins un champ doit Ãªtre fourni pour modifier la matiÃ¨re.',
+      );
+    }
+
+    const data: {
+      name?: string;
+      slug?: string;
+      isActive?: boolean;
+    } = {};
+
+    if (dto.name !== undefined) {
+      const name = dto.name.trim();
+
+      if (!name) {
+        throw new BadRequestException(
+          'Le nom de la matiÃ¨re est obligatoire.',
+        );
+      }
+
+      const slug = this.generateSlug(name);
+
+      if (!slug) {
+        throw new BadRequestException(
+          'Impossible de gÃ©nÃ©rer un slug valide Ã  partir du nom.',
+        );
+      }
+
+      data.name = name;
+      data.slug = slug;
+    }
+
+    if (dto.isActive !== undefined) {
+      data.isActive = dto.isActive;
+    }
+
+    try {
+      return await this.prisma.subject.update({
+        where: { id },
+        data,
+        select: {
+          id: true,
+          name: true,
+          slug: true,
+          isActive: true,
+          createdAt: true,
+        },
+      });
+    } catch (error) {
+      this.handlePrismaError(error);
+    }
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\academics\services\teacher-scope.service.ts
+============================================================
+
+import {
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+
+@Injectable()
+export class TeacherScopeService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  async assertCanManage(
+    user: { id: string; role: string },
+    classSubjectId: string,
+  ) {
+    const classSubject = await this.prisma.classSubject.findUnique({
+      where: { id: classSubjectId },
+      select: {
+        id: true,
+        classId: true,
+        subjectId: true,
+      },
+    });
+
+    if (!classSubject) {
+      throw new NotFoundException('MatiÃ¨re de classe introuvable');
+    }
+
+    if (user.role === 'ADMINISTRATEUR') {
+      return classSubject;
+    }
+
+    if (user.role !== 'ENSEIGNANT') {
+      throw new ForbiddenException(
+        'Vous ne pouvez pas gÃ©rer cette matiÃ¨re',
+      );
+    }
+
+    const assignment = await this.prisma.teacherAssignment.findFirst({
+      where: {
+        userId: user.id,
+        classSubjectId,
+      },
+      select: { id: true },
+    });
+
+    if (!assignment) {
+      throw new ForbiddenException(
+        'Vous n Ãªtes pas affectÃ© Ã  cette matiÃ¨re',
+      );
+    }
+
+    return classSubject;
+  }
+}
+
+============================================================
+FICHIER : src\modules\assessments\assessments.module.ts
+============================================================
+
+import { Module } from '@nestjs/common';
+
+import { AssessmentsController } from './controllers/assessments.controller';
+import { AssessmentsService } from './services/assessments.service';
+
+import { AuthModule } from '../auth/auth.module';
+import { AcademicsModule } from '../academics/academics.module';
+import { GamificationModule } from '../gamification/gamification.module';
+
+@Module({
+  imports: [
+    AuthModule,
+    AcademicsModule,
+    GamificationModule,
+  ],
+  controllers: [
+    AssessmentsController,
+  ],
+  providers: [
+    AssessmentsService,
+  ],
+  exports: [
+    AssessmentsService,
+  ],
+})
+export class AssessmentsModule {}
+
+============================================================
+FICHIER : src\modules\assessments\controllers\assessments.controller.spec.ts
+============================================================
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { AssessmentsController } from './assessments.controller';
+
+describe('AssessmentsController', () => {
+  let controller: AssessmentsController;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [AssessmentsController],
+    }).compile();
+
+    controller = module.get<AssessmentsController>(AssessmentsController);
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});
+
+
+============================================================
+FICHIER : src\modules\assessments\controllers\assessments.controller.ts
+============================================================
+
+import { Controller } from '@nestjs/common';
+
+@Controller('assessments')
+export class AssessmentsController {}
+
+
+============================================================
+FICHIER : src\modules\assessments\dto\assessment-filter.dto.ts
+============================================================
+
+import { IsOptional, IsUUID } from 'class-validator';
+
+export class AssessmentFilterDto {
+  @IsOptional()
+  @IsUUID()
+  chapterId?: string;
+}
+
+============================================================
+FICHIER : src\modules\assessments\dto\attempt-filter.dto.ts
+============================================================
+
+import { IsOptional, IsUUID } from 'class-validator';
+
+export class AttemptFilterDto {
+  @IsOptional()
+  @IsUUID()
+  assessmentId?: string;
+}
+
+============================================================
+FICHIER : src\modules\assessments\dto\create-assessment.dto.ts
+============================================================
+
+import {
+  ArrayMinSize,
+  IsArray,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+import { CreateQuestionDto } from './create-question.dto';
+
+export class CreateAssessmentDto {
+  @IsString()
+  @MinLength(2)
+  title!: string;
+
+  @IsOptional()
+  @IsString()
+  instructions?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationSeconds?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  passingPercent?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  position?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreateQuestionDto)
+  questions?: CreateQuestionDto[];
+}
+
+============================================================
+FICHIER : src\modules\assessments\dto\create-question.dto.ts
+============================================================
+
+import {
+  ArrayMinSize,
+  IsArray,
+  IsEnum,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+  ValidateNested,
+} from 'class-validator';
+import { Type } from 'class-transformer';
+
+import { QuestionType } from '../../../generated/prisma/client';
+import { CreateQuestionOptionDto } from './create-question-option.dto';
+
+export class CreateQuestionDto {
+  @IsEnum(QuestionType)
+  type!: QuestionType;
+
+  @IsString()
+  @MinLength(1)
+  statement!: string;
+
+  @IsOptional()
+  @IsString()
+  explanation?: string;
+
+  @IsOptional()
+  @IsString()
+  imageKey?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  points?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  position?: number;
+
+  @IsArray()
+  @ArrayMinSize(2)
+  @ValidateNested({ each: true })
+  @Type(() => CreateQuestionOptionDto)
+  options!: CreateQuestionOptionDto[];
+}
+
+============================================================
+FICHIER : src\modules\assessments\dto\create-question-option.dto.ts
+============================================================
+
+import {
+  IsBoolean,
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+} from 'class-validator';
+
+export class CreateQuestionOptionDto {
+  @IsString()
+  @MinLength(1)
+  label!: string;
+
+  @IsBoolean()
+  isCorrect!: boolean;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  position?: number;
+}
+
+============================================================
+FICHIER : src\modules\assessments\dto\submit-answer.dto.ts
+============================================================
+
+import {
+  ArrayUnique,
+  IsArray,
+  IsUUID,
+} from 'class-validator';
+
+export class SubmitAnswerDto {
+  @IsUUID()
+  questionId!: string;
+
+  @IsArray()
+  @ArrayUnique()
+  @IsUUID('all', { each: true })
+  optionIds!: string[];
+}
+
+============================================================
+FICHIER : src\modules\assessments\dto\update-assessment.dto.ts
+============================================================
+
+import {
+  IsInt,
+  IsOptional,
+  IsString,
+  Max,
+  Min,
+  MinLength,
+} from 'class-validator';
+
+export class UpdateAssessmentDto {
+  @IsOptional()
+  @IsString()
+  @MinLength(2)
+  title?: string;
+
+  @IsOptional()
+  @IsString()
+  instructions?: string;
+
+  @IsOptional()
+  @IsInt()
+  @Min(1)
+  durationSeconds?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100)
+  passingPercent?: number;
+
+  @IsOptional()
+  @IsInt()
+  @Min(0)
+  @Max(100000)
+  position?: number;
+}
+
+============================================================
+FICHIER : src\modules\assessments\services\assessments.service.spec.ts
+============================================================
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { AssessmentsService } from './assessments.service';
+
+describe('AssessmentsService', () => {
+  let service: AssessmentsService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [AssessmentsService],
+    }).compile();
+
+    service = module.get<AssessmentsService>(AssessmentsService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+
+============================================================
+FICHIER : src\modules\assessments\services\assessments.service.ts
+============================================================
+
+import { Injectable } from '@nestjs/common';
+
+@Injectable()
+export class AssessmentsService {}
+
+
+============================================================
+FICHIER : src\modules\audit\services\audit.service.ts
+============================================================
+
+import { Injectable } from '@nestjs/common';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+import { ClsContextService } from '../../../common/cls/cls-context.service';
+import type { AuditQueryDto } from '../dto/audit-query.dto';
+import type { Prisma } from '../../../generated/prisma/client';
+
+export interface CreateAuditLogInput {
+  action: string;
+  entityType: string;
+  entityId?: string | null;
+  before?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+  after?: Prisma.InputJsonValue | Prisma.NullableJsonNullValueInput;
+}
+
+@Injectable()
+export class AuditService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly clsContext: ClsContextService,
+  ) {}
+
+  async findAll(filters: AuditQueryDto) {
+  const {
+    userId,
+    entityType,
+    entityId,
+    action,
+    from,
+    to,
+    page = 1,
+    limit = 20,
+  } = filters;
+
+  const where: Prisma.AuditLogWhereInput = {
+    ...(userId && { userId }),
+    ...(entityType && { entityType }),
+    ...(entityId && { entityId }),
+    ...(action && { action }),
+    ...(from || to
+      ? {
+          createdAt: {
+            ...(from && { gte: new Date(from) }),
+            ...(to && { lte: new Date(to) }),
+          },
+        }
+      : {}),
+  };
+
+  const [data, total] = await this.prisma.$transaction([
+    this.prisma.auditLog.findMany({
+      where,
+      orderBy: {
+        createdAt: 'desc',
+      },
+      skip: (page - 1) * limit,
+      take: limit,
+    }),
+    this.prisma.auditLog.count({ where }),
+  ]);
+
+const serializedData = data.map((log) => ({
+  ...log,
+  id: log.id.toString(),
+}));
+
+return {
+  data: serializedData,
+  meta: {
+    total,
+    page,
+    limit,
+    totalPages: Math.ceil(total / limit),
+  },
+};
+}
+
+  async log(
+    input: CreateAuditLogInput,
+    tx?: Prisma.TransactionClient,
+  ) {
+    const client = tx ?? this.prisma;
+
+    return client.auditLog.create({
+      data: {
+        userId: this.clsContext.userId ?? null,
+        role: this.clsContext.role ?? null,
+        action: input.action,
+        entityType: input.entityType,
+        entityId: input.entityId ?? null,
+        before: input.before,
+        after: input.after,
+        ipAddress: this.clsContext.ipAddress ?? null,
+      },
+    });
+  }
+}
+
+============================================================
+FICHIER : src\modules\auth\decorators\current-user.decorator.ts
+============================================================
+
+import {
+  createParamDecorator,
+  ExecutionContext,
+} from '@nestjs/common';
+
+export interface AuthenticatedUser {
+  id: string;
+  role: string;
+  status: string;
+  canPublish: boolean;
+  classId: string | null;
+}
+
+export const CurrentUser = createParamDecorator(
+  (_data: unknown, context: ExecutionContext): AuthenticatedUser => {
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user: AuthenticatedUser }>();
+
+    return request.user;
+  },
+);
+
+============================================================
+FICHIER : src\modules\auth\guards\jwt-auth.guard.ts
+============================================================
+
+import { Injectable } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
+
+@Injectable()
+export class JwtAuthGuard extends AuthGuard('jwt') {}
+
+============================================================
+FICHIER : src\modules\auth\guards\roles.guard.ts
+============================================================
+
+import {
+  CanActivate,
+  ExecutionContext,
+  Injectable,
+} from '@nestjs/common';
+import { Reflector } from '@nestjs/core';
+import type { Role } from '../../../generated/prisma/client';
+import type { AuthenticatedUser } from '../decorators/current-user.decorator';
+import { ROLES_KEY } from '../decorators/roles.decorator';
+
+@Injectable()
+export class RolesGuard implements CanActivate {
+  constructor(private readonly reflector: Reflector) {}
+
+  canActivate(context: ExecutionContext): boolean {
+    const requiredRoles = this.reflector.getAllAndOverride<Role[]>(
+      ROLES_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    if (!requiredRoles || requiredRoles.length === 0) {
+      return true;
+    }
+
+    const request = context
+      .switchToHttp()
+      .getRequest<{ user?: AuthenticatedUser }>();
+
+    const user = request.user;
+
+    if (!user) {
+      return false;
+    }
+
+    return requiredRoles.includes(user.role as Role);
+  }
+}
+
+============================================================
+FICHIER : src\modules\courses\controllers\lessons.controller.ts
+============================================================
+
+
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  Post,
+  Put,
+  ParseUUIDPipe,
+  UseGuards,
+  Query,
+} from '@nestjs/common';
+
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
+
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
+import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
+import { RolesGuard } from '../../auth/guards/roles.guard';
+import { Roles } from '../../auth/decorators/roles.decorator';
+import { CurrentUser } from '../../auth/decorators/current-user.decorator';
+
+import { LessonsService } from '../services/lessons.service';
+
+import { CreateLessonDto } from '../dto/create-lesson.dto';
+import { UpdateLessonDto } from '../dto/update-lesson.dto';
+import { LessonFilterDto } from '../dto/lesson-filter.dto';
+import { UpdateLessonProgressDto } from '../dto/update-lesson-progress.dto';
+
+@ApiTags('Courses - Lessons')
+@ApiBearerAuth()
+@Controller()
+@UseGuards(JwtAuthGuard, RolesGuard)
+export class LessonsController {
+  constructor(
+    private readonly lessonsService: LessonsService,
+  ) {}
+
+  @Post('chapters/:chapterId/lessons')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  @ApiOperation({ summary: 'CrÃ©er une leÃ§on' })
+  create(
+    @CurrentUser() user: any,
+    @Param('chapterId', ParseUUIDPipe) chapterId: string,
+    @Body() dto: CreateLessonDto,
+  ) {
+    return this.lessonsService.create(
+      user,
+      chapterId,
+      dto,
+    );
+  }
+
+  @Patch('lessons/:id')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  @ApiOperation({ summary: 'Modifier une leÃ§on' })
+  update(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateLessonDto,
+  ) {
+    return this.lessonsService.update(
+      user,
+      id,
+      dto,
+    );
+  }
+
+  @Post('lessons/:id/assets')
+@Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 20 * 1024 * 1024,
+      files: 1,
+    },
+  }),
+)
+uploadAsset(
+  @CurrentUser() user: any,
+  @Param('id', ParseUUIDPipe) id: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  return this.lessonsService.uploadPdfAsset(user, id, file);
+}
+
+@Delete('lessons/:id/assets/:assetId')
+@Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+deleteAsset(
+  @CurrentUser() user: any,
+  @Param('id', ParseUUIDPipe) id: string,
+  @Param('assetId', ParseUUIDPipe) assetId: string,
+) {
+  return this.lessonsService.deleteAsset(user, id, assetId);
+}
+
+  @Post('lessons/:id/publish')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  @ApiOperation({ summary: 'Publier une leÃ§on' })
+  publish(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.lessonsService.publish(user, id);
+  }
+
+  @Post('lessons/:id/archive')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  @ApiOperation({ summary: 'Archiver une leÃ§on' })
+  archive(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.lessonsService.archive(user, id);
+  }
+
+  @Get('lessons')
+  @Roles('ELEVE', 'ADMINISTRATEUR', 'ENSEIGNANT')
+  @ApiOperation({ summary: 'Lister les leÃ§ons' })
+  findAll(
+    @CurrentUser() user: any,
+    @Query() filters: LessonFilterDto,
+  ) {
+    return this.lessonsService.findAll(
+      user,
+      filters,
+    );
+  }
+
+  @Get('lessons/:id')
+  @Roles('ELEVE', 'ADMINISTRATEUR', 'ENSEIGNANT')
+  @ApiOperation({ summary: 'DÃ©tail dâ€™une leÃ§on' })
+  findOne(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.lessonsService.findOne(user, id);
+  }
+
+  @Put('lessons/:id/favorite')
+  @Roles('ELEVE')
+  @ApiOperation({ summary: 'Ajouter aux favoris' })
+  addFavorite(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.lessonsService.addFavorite(user, id);
+  }
+
+  @Delete('lessons/:id/favorite')
+  @Roles('ELEVE')
+  @ApiOperation({ summary: 'Retirer des favoris' })
+  removeFavorite(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.lessonsService.removeFavorite(
+      user,
+      id,
+    );
+  }
+
+  @Put('lessons/:id/progress')
+  @Roles('ELEVE')
+  @ApiOperation({ summary: 'Mettre Ã  jour la progression' })
+  updateProgress(
+    @CurrentUser() user: any,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: UpdateLessonProgressDto,
+  ) {
+    return this.lessonsService.updateProgress(
+      user,
+      id,
+      dto,
+    );
+  }
+
+  @Get('me/progress/lessons')
+  @Roles('ELEVE')
+  @ApiOperation({ summary: 'Reprendre les leÃ§ons' })
+  findMyProgress(
+    @CurrentUser() user: any,
+  ) {
+    return this.lessonsService.findMyProgress(user);
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\courses\courses.module.ts
+============================================================
+
+
+import { Module } from '@nestjs/common';
+
+import { AuthModule } from '../auth/auth.module';
+import { AuditModule } from '../audit/audit.module';
+import { AcademicsModule } from '../academics/academics.module';
+import { GamificationModule } from '../gamification/gamification.module';
+
+import { UploadModule } from '../../common/upload/upload.module';
+
+import { LessonsController } from './controllers/lessons.controller';
+import { LessonsService } from './services/lessons.service';
+
+@Module({
+  imports: [
+    AuthModule,
+    AuditModule,
+    AcademicsModule,
+    GamificationModule,
+    UploadModule,
+  ],
+  controllers: [
+    LessonsController,
+  ],
+  providers: [
+    LessonsService,
+  ],
+  exports: [
+    LessonsService,
+  ],
+})
+export class CoursesModule {}
+
+
+============================================================
+FICHIER : src\modules\courses\services\lessons.service.ts
+============================================================
+
+
+import {
+  BadRequestException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+
+import { randomUUID } from 'crypto';
+import sanitizeHtml from 'sanitize-html';
+import { fileTypeFromBuffer } from 'file-type';
+import { AssetProcessingStatus } from '../../../generated/prisma/client';
+import {
+  ActivityRefType,
+  ActivityType,
+  AssetKind,
+  ContentStatus,
+  LessonType,
+} from '../../../generated/prisma/client';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+import { AuditService } from '../../audit/services/audit.service';
+import { AUDIT_ACTIONS } from '../../audit/constants/audit-actions.constants';
+import { TeacherScopeService } from '../../academics/services/teacher-scope.service';
+import { GamificationService } from '../../gamification/services/gamification.service';
+import { UploadService } from '../../../common/upload/upload.service';
+
+import type { CreateLessonDto } from '../dto/create-lesson.dto';
+import type { UpdateLessonDto } from '../dto/update-lesson.dto';
+import type { LessonFilterDto } from '../dto/lesson-filter.dto';
+import type { UpdateLessonProgressDto } from '../dto/update-lesson-progress.dto';
+
+type CurrentUser = {
+  id: string;
+  role: string;
+  classId: string | null;
+  canPublish: boolean;
+};
+const MAX_PDF_SIZE = 20 * 1024 * 1024;
+
+@Injectable()
+export class LessonsService {
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly auditService: AuditService,
+    private readonly gamificationService: GamificationService,
+    private readonly uploadService: UploadService,
+    private readonly teacherScopeService: TeacherScopeService,
+  ) {}
+
+  private sanitizeMarkdown(value: string): string {
+    return sanitizeHtml(value, {
+      allowedTags: [],
+      allowedAttributes: {},
+      disallowedTagsMode: 'discard',
+    }).trim();
+  }
+
+  private async findLessonOrFail(id: string) {
+    const lesson = await this.prisma.lesson.findUnique({
+      where: { id },
+      include: {
+        chapter: true,
+      },
+    });
+
+    if (!lesson) {
+      throw new NotFoundException('LeÃ§on introuvable');
+    }
+
+    return lesson;
+  }
+
+  private async assertLessonAccess(
+    user: CurrentUser,
+    lessonId: string,
+  ) {
+    const lesson = await this.findLessonOrFail(lessonId);
+
+    if (user.role === 'ELEVE') {
+      if (
+        !user.classId ||
+        lesson.classId !== user.classId ||
+        lesson.status !== ContentStatus.PUBLIE ||
+        lesson.chapter.status !== ContentStatus.PUBLIE
+      ) {
+        throw new NotFoundException('LeÃ§on introuvable');
+      }
+
+      return lesson;
+    }
+
+    if (
+      user.role === 'ADMINISTRATEUR' ||
+      user.role === 'ENSEIGNANT'
+    ) {
+      await this.teacherScopeService.assertCanManage(
+        user,
+        lesson.chapter.classSubjectId,
+      );
+
+      return lesson;
+    }
+
+    throw new ForbiddenException(
+      'AccÃ¨s interdit Ã  cette leÃ§on',
+    );
+  }
+
+  // --------------------------------------------------
+  // CRÃ‰ATION
+  // --------------------------------------------------
+
+  async create(
+    user: CurrentUser,
+    chapterId: string,
+    dto: CreateLessonDto,
+  ) {
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+    });
+
+    if (!chapter) {
+      throw new NotFoundException('Chapitre introuvable');
+    }
+
+    await this.teacherScopeService.assertCanManage(
+      user,
+      chapter.classSubjectId,
+    );
+
+    if (!dto.title.trim()) {
+      throw new BadRequestException(
+        'Le titre est obligatoire',
+      );
+    }
+
+    if (dto.type === LessonType.TEXTE) {
+      if (!dto.contentMarkdown?.trim()) {
+        throw new BadRequestException(
+          'Le contenu Markdown est obligatoire pour une leÃ§on texte',
+        );
+      }
+    }
+
+    if (dto.type === LessonType.VIDEO) {
+      throw new BadRequestException(
+        'Les vidÃ©os seront disponibles dans la phase 2',
+      );
+    }
+
+    const contentMarkdown =
+      dto.type === LessonType.TEXTE
+        ? this.sanitizeMarkdown(dto.contentMarkdown!)
+        : null;
+
+    return this.prisma.$transaction(async (tx) => {
+      const lesson = await tx.lesson.create({
+        data: {
+          chapterId,
+          classId: chapter.classId,
+          title: dto.title.trim(),
+          type: dto.type,
+          contentMarkdown,
+          durationSeconds: null,
+          position: dto.position ?? 0,
+          status: ContentStatus.BROUILLON,
+          createdById: user.id,
+        },
+      });
+
+      await this.auditService.log(
+        {
+          action: 'LESSON_CREATED',
+          entityType: 'Lesson',
+          entityId: lesson.id,
+          after: {
+            title: lesson.title,
+            type: lesson.type,
+            classId: lesson.classId,
+            chapterId: lesson.chapterId,
+          },
+        },
+        tx,
+      );
+
+      return lesson;
+    });
+  }
+
+  // --------------------------------------------------
+  // MODIFICATION
+  // --------------------------------------------------
+
+  async update(
+    user: CurrentUser,
+    lessonId: string,
+    dto: UpdateLessonDto,
+  ) {
+    const lesson = await this.findLessonOrFail(lessonId);
+
+    await this.teacherScopeService.assertCanManage(
+      user,
+      lesson.chapter.classSubjectId,
+    );
+
+    if (lesson.status === ContentStatus.ARCHIVE) {
+      throw new BadRequestException(
+        'Une leÃ§on archivÃ©e ne peut pas Ãªtre modifiÃ©e',
+      );
+    }
+
+    if (
+      dto.title === undefined &&
+      dto.contentMarkdown === undefined &&
+      dto.position === undefined &&
+      dto.durationSeconds === undefined
+    ) {
+      throw new BadRequestException(
+        'Aucune modification fournie',
+      );
+    }
+
+    if (dto.title !== undefined && !dto.title.trim()) {
+      throw new BadRequestException(
+        'Le titre est obligatoire',
+      );
+    }
+
+    if (
+      lesson.type === LessonType.TEXTE &&
+      dto.contentMarkdown !== undefined &&
+      !dto.contentMarkdown.trim()
+    ) {
+      throw new BadRequestException(
+        'Le contenu Markdown est obligatoire',
+      );
+    }
+
+    const data = {
+      ...(dto.title !== undefined && {
+        title: dto.title.trim(),
+      }),
+      ...(dto.contentMarkdown !== undefined && {
+        contentMarkdown: this.sanitizeMarkdown(
+          dto.contentMarkdown,
+        ),
+      }),
+      ...(dto.position !== undefined && {
+        position: dto.position,
+      }),
+      ...(dto.durationSeconds !== undefined && {
+        durationSeconds: dto.durationSeconds,
+      }),
+      ...(lesson.status === ContentStatus.PUBLIE && {
+        version: { increment: 1 },
+      }),
+    };
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.lesson.update({
+        where: { id: lessonId },
+        data,
+      });
+
+      await this.auditService.log(
+        {
+          action: 'LESSON_UPDATED',
+          entityType: 'Lesson',
+          entityId: lessonId,
+          before: {
+            title: lesson.title,
+            contentMarkdown: lesson.contentMarkdown,
+            position: lesson.position,
+            version: lesson.version,
+          },
+          after: {
+            title: updated.title,
+            contentMarkdown: updated.contentMarkdown,
+            position: updated.position,
+            version: updated.version,
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  async uploadPdfAsset(
+  user: CurrentUser,
+  lessonId: string,
+  file: Express.Multer.File,
+) {
+  if (!file) {
+    throw new BadRequestException('Aucun fichier fourni.');
+  }
+
+  if (!file.buffer || file.buffer.length === 0) {
+    throw new BadRequestException('Le fichier est vide ou invalide.');
+  }
+
+  if (file.size > MAX_PDF_SIZE) {
+    throw new BadRequestException(
+      'Le fichier PDF ne doit pas dÃ©passer 20 Mo.',
+    );
+  }
+
+  // VÃ©rification du contenu rÃ©el du fichier, et non de son extension.
+  const fileType = await fileTypeFromBuffer(file.buffer);
+
+  if (fileType?.mime !== 'application/pdf') {
+    throw new BadRequestException(
+      'Le fichier fourni nâ€™est pas un vÃ©ritable PDF.',
+    );
+  }
+
+  const lesson = await this.findLessonOrFail(lessonId);
+
+  await this.teacherScopeService.assertCanManage(
+    user,
+    lesson.chapter.classSubjectId,
+  );
+
+  if (lesson.type !== LessonType.PDF) {
+    throw new BadRequestException(
+      'Les fichiers PDF ne peuvent Ãªtre ajoutÃ©s quâ€™aux leÃ§ons de type PDF.',
+    );
+  }
+
+  if (lesson.status === ContentStatus.ARCHIVE) {
+    throw new BadRequestException(
+      'Impossible de modifier une leÃ§on archivÃ©e.',
+    );
+  }
+
+  const storageKey =
+    `pdf/${lesson.classId}/${randomUUID()}.pdf`;
+
+  // 1. Upload dans Backblaze B2.
+  await this.uploadService.uploadFile({
+    storageKey,
+    buffer: file.buffer,
+    mimeType: 'application/pdf',
+  });
+
+  try {
+    // 2. Enregistrement en base et journalisation.
+    return await this.prisma.$transaction(async (tx) => {
+      const asset = await tx.lessonAsset.create({
+        data: {
+          lessonId: lesson.id,
+          kind: AssetKind.PDF,
+          storageKey,
+          mimeType: 'application/pdf',
+          sizeBytes: file.buffer.length,
+          processingStatus: AssetProcessingStatus.PRET,
+        },
+      });
+
+      if (lesson.status === ContentStatus.PUBLIE) {
+        await tx.lesson.update({
+          where: { id: lesson.id },
+          data: { version: { increment: 1 } },
+        });
+      }
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.ASSET_UPLOADED,
+          entityType: 'LESSON_ASSET',
+          entityId: asset.id,
+          after: {
+            lessonId: lesson.id,
+            kind: AssetKind.PDF,
+            sizeBytes: asset.sizeBytes,
+          },
+        },
+        tx,
+      );
+
+      return asset;
+    });
+  } catch (error) {
+    // 3. Si l'enregistrement Ã©choue, on supprime l'objet B2.
+    try {
+      await this.uploadService.deleteFile(storageKey);
+    } catch {
+      // Ne pas masquer l'erreur initiale de la transaction.
+    }
+
+    throw error;
+  }
+}
+
+async deleteAsset(
+  user: CurrentUser,
+  lessonId: string,
+  assetId: string,
+) {
+  const lesson = await this.findLessonOrFail(lessonId);
+
+  await this.teacherScopeService.assertCanManage(
+    user,
+    lesson.chapter.classSubjectId,
+  );
+
+  if (lesson.status === ContentStatus.ARCHIVE) {
+    throw new BadRequestException(
+      'Impossible de modifier une leÃ§on archivÃ©e.',
+    );
+  }
+
+  // Les assets d'une leÃ§on publiÃ©e ne sont pas supprimÃ©s physiquement.
+  if (lesson.status === ContentStatus.PUBLIE) {
+    throw new BadRequestException(
+      'Une ressource publiÃ©e ne peut pas Ãªtre supprimÃ©e. Ajoutez une nouvelle ressource pour la remplacer.',
+    );
+  }
+
+  const asset = await this.prisma.lessonAsset.findFirst({
+    where: {
+      id: assetId,
+      lessonId: lesson.id,
+    },
+  });
+
+  if (!asset) {
+    throw new NotFoundException('Ressource introuvable.');
+  }
+
+  // Suppression de l'objet distant avant la suppression en base.
+  await this.uploadService.deleteFile(asset.storageKey);
+
+  return this.prisma.$transaction(async (tx) => {
+    await tx.lessonAsset.delete({
+      where: { id: asset.id },
+    });
+
+    await this.auditService.log(
+      {
+        action: AUDIT_ACTIONS.ASSET_DELETED,
+        entityType: 'LESSON_ASSET',
+        entityId: asset.id,
+        before: {
+          lessonId: lesson.id,
+          kind: asset.kind,
+          sizeBytes: asset.sizeBytes,
+        },
+      },
+      tx,
+    );
+
+    return {
+      message: 'Ressource supprimÃ©e avec succÃ¨s.',
+    };
+  });
+}
+
+  // --------------------------------------------------
+  // PUBLICATION
+  // --------------------------------------------------
+
+  async publish(
+    user: CurrentUser,
+    lessonId: string,
+  ) {
+    const lesson = await this.findLessonOrFail(lessonId);
+
+    await this.teacherScopeService.assertCanManage(
+      user,
+      lesson.chapter.classSubjectId,
+    );
+
+    if (
+      user.role !== 'ADMINISTRATEUR' &&
+      !user.canPublish
+    ) {
+      throw new ForbiddenException(
+        'Vous ne disposez pas du droit de publication',
+      );
+    }
+
+    if (lesson.status === ContentStatus.PUBLIE) {
+      throw new BadRequestException(
+        'Cette leÃ§on est dÃ©jÃ  publiÃ©e',
+      );
+    }
+
+    if (lesson.status === ContentStatus.ARCHIVE) {
+      throw new BadRequestException(
+        'Une leÃ§on archivÃ©e ne peut pas Ãªtre publiÃ©e',
+      );
+    }
+
+    if (lesson.chapter.status !== ContentStatus.PUBLIE) {
+      throw new BadRequestException(
+        'Le chapitre doit Ãªtre publiÃ© avant la leÃ§on',
+      );
+    }
+
+    if (
+      lesson.type === LessonType.TEXTE &&
+      !lesson.contentMarkdown?.trim()
+    ) {
+      throw new BadRequestException(
+        'Le contenu de la leÃ§on est vide',
+      );
+    }
+
+    if (lesson.type === LessonType.PDF) {
+      const pdf = await this.prisma.lessonAsset.findFirst({
+        where: {
+          lessonId,
+          kind: AssetKind.PDF,
+          processingStatus: 'PRET',
+        },
+      });
+
+      if (!pdf) {
+        throw new BadRequestException(
+          'Un fichier PDF valide est obligatoire pour publier cette leÃ§on',
+        );
+      }
+    }
+
+    if (lesson.type === LessonType.VIDEO) {
+      throw new BadRequestException(
+        'La publication des vidÃ©os sera activÃ©e en phase 2',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.lesson.update({
+        where: { id: lessonId },
+        data: {
+          status: ContentStatus.PUBLIE,
+          publishedAt: new Date(),
+          publishedById: user.id,
+        },
+      });
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.LESSON_PUBLISHED,
+          entityType: 'Lesson',
+          entityId: lessonId,
+          before: {
+            status: lesson.status,
+          },
+          after: {
+            status: updated.status,
+            publishedAt: updated.publishedAt?.toISOString(),
+            publishedById: updated.publishedById,
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  // --------------------------------------------------
+  // ARCHIVAGE
+  // --------------------------------------------------
+
+  async archive(
+    user: CurrentUser,
+    lessonId: string,
+  ) {
+    const lesson = await this.findLessonOrFail(lessonId);
+
+    await this.teacherScopeService.assertCanManage(
+      user,
+      lesson.chapter.classSubjectId,
+    );
+
+    if (lesson.status === ContentStatus.ARCHIVE) {
+      throw new BadRequestException(
+        'Cette leÃ§on est dÃ©jÃ  archivÃ©e',
+      );
+    }
+
+    return this.prisma.$transaction(async (tx) => {
+      const updated = await tx.lesson.update({
+        where: { id: lessonId },
+        data: {
+          status: ContentStatus.ARCHIVE,
+        },
+      });
+
+      await this.auditService.log(
+        {
+          action: AUDIT_ACTIONS.LESSON_ARCHIVED,
+          entityType: 'Lesson',
+          entityId: lessonId,
+          before: {
+            status: lesson.status,
+          },
+          after: {
+            status: updated.status,
+          },
+        },
+        tx,
+      );
+
+      return updated;
+    });
+  }
+
+  // --------------------------------------------------
+  // LISTE DES LEÃ‡ONS
+  // --------------------------------------------------
+
+  async findAll(
+    user: CurrentUser,
+    filters: LessonFilterDto,
+  ) {
+    const where: any = {
+      ...(filters.chapterId && {
+        chapterId: filters.chapterId,
+      }),
+      ...(filters.classSubjectId && {
+        chapter: {
+          classSubjectId: filters.classSubjectId,
+        },
+      }),
+      ...(filters.type && {
+        type: filters.type,
+      }),
+    };
+
+    if (user.role === 'ELEVE') {
+      if (!user.classId) {
+        throw new NotFoundException(
+          'Aucune classe associÃ©e Ã  votre profil',
+        );
+      }
+
+      where.classId = user.classId;
+      where.status = ContentStatus.PUBLIE;
+      where.chapter = {
+        ...where.chapter,
+        status: ContentStatus.PUBLIE,
+      };
+    } else if (user.role === 'ENSEIGNANT') {
+      where.chapter = {
+        ...where.chapter,
+        classSubject: {
+          teachers: {
+            some: {
+              userId: user.id,
+            },
+          },
+        },
+      };
+    } else if (user.role !== 'ADMINISTRATEUR') {
+      throw new ForbiddenException();
+    }
+
+    if (filters.favorite === 'true') {
+      where.favorites = {
+        some: {
+          userId: user.id,
+        },
+      };
+    } else if (filters.favorite === 'false') {
+      where.favorites = {
+        none: {
+          userId: user.id,
+        },
+      };
+    }
+
+    return this.prisma.lesson.findMany({
+      where,
+      orderBy: [
+        { chapterId: 'asc' },
+        { position: 'asc' },
+      ],
+      select: {
+        id: true,
+        chapterId: true,
+        classId: true,
+        title: true,
+        type: true,
+        position: true,
+        status: true,
+        version: true,
+        durationSeconds: true,
+        publishedAt: true,
+        createdAt: true,
+        chapter: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            classSubjectId: true,
+          },
+        },
+        _count: {
+          select: {
+            assets: true,
+          },
+        },
+      },
+    });
+  }
+
+  // --------------------------------------------------
+  // DÃ‰TAIL ET LIENS SIGNÃ‰S
+  // --------------------------------------------------
+
+  async findOne(
+    user: CurrentUser,
+    lessonId: string,
+  ) {
+    const lesson = await this.assertLessonAccess(
+      user,
+      lessonId,
+    );
+
+    const assets = await this.prisma.lessonAsset.findMany({
+      where: {
+        lessonId,
+        processingStatus: 'PRET',
+      },
+      select: {
+        id: true,
+        kind: true,
+        mimeType: true,
+        sizeBytes: true,
+        durationSeconds: true,
+        storageKey: true,
+        createdAt: true,
+      },
+    });
+
+    const assetsWithLinks = await Promise.all(
+      assets.map(async (asset) => ({
+        id: asset.id,
+        kind: asset.kind,
+        mimeType: asset.mimeType,
+        sizeBytes: asset.sizeBytes,
+        durationSeconds: asset.durationSeconds,
+        createdAt: asset.createdAt,
+        downloadUrl:
+          await this.uploadService.createSignedDownloadUrl(
+            asset.storageKey,
+            300,
+          ),
+      })),
+    );
+
+    const progress =
+      user.role === 'ELEVE'
+        ? await this.prisma.lessonProgress.findUnique({
+            where: {
+              userId_lessonId: {
+                userId: user.id,
+                lessonId,
+              },
+            },
+          })
+        : null;
+
+    return {
+      id: lesson.id,
+      chapterId: lesson.chapterId,
+      title: lesson.title,
+      type: lesson.type,
+      contentMarkdown: lesson.contentMarkdown,
+      durationSeconds: lesson.durationSeconds,
+      position: lesson.position,
+      status: lesson.status,
+      version: lesson.version,
+      publishedAt: lesson.publishedAt,
+      assets: assetsWithLinks,
+      myProgress: progress,
+    };
+  }
+
+  // --------------------------------------------------
+  // FAVORIS
+  // --------------------------------------------------
+
+  async addFavorite(
+    user: CurrentUser,
+    lessonId: string,
+  ) {
+    if (user.role !== 'ELEVE') {
+      throw new ForbiddenException(
+        'Cette fonctionnalitÃ© est rÃ©servÃ©e aux Ã©lÃ¨ves',
+      );
+    }
+
+    await this.assertLessonAccess(user, lessonId);
+
+    await this.prisma.lessonFavorite.upsert({
+      where: {
+        userId_lessonId: {
+          userId: user.id,
+          lessonId,
+        },
+      },
+      create: {
+        userId: user.id,
+        lessonId,
+      },
+      update: {},
+    });
+
+    return {
+      lessonId,
+      favorite: true,
+    };
+  }
+
+  async removeFavorite(
+    user: CurrentUser,
+    lessonId: string,
+  ) {
+    if (user.role !== 'ELEVE') {
+      throw new ForbiddenException(
+        'Cette fonctionnalitÃ© est rÃ©servÃ©e aux Ã©lÃ¨ves',
+      );
+    }
+
+    await this.assertLessonAccess(user, lessonId);
+
+    await this.prisma.lessonFavorite.deleteMany({
+      where: {
+        userId: user.id,
+        lessonId,
+      },
+    });
+
+    return {
+      lessonId,
+      favorite: false,
+    };
+  }
+
+  // --------------------------------------------------
+  // PROGRESSION
+  // --------------------------------------------------
+
+  async updateProgress(
+    user: CurrentUser,
+    lessonId: string,
+    dto: UpdateLessonProgressDto,
+  ) {
+    if (user.role !== 'ELEVE') {
+      throw new ForbiddenException(
+        'Cette fonctionnalitÃ© est rÃ©servÃ©e aux Ã©lÃ¨ves',
+      );
+    }
+
+    const lesson = await this.assertLessonAccess(
+      user,
+      lessonId,
+    );
+
+    if (
+      lesson.type === LessonType.PDF &&
+      dto.lastPositionSeconds !== undefined
+    ) {
+      throw new BadRequestException(
+        'La position de lecture est rÃ©servÃ©e aux vidÃ©os',
+      );
+    }
+
+    if (
+      lesson.type === LessonType.VIDEO &&
+      dto.lastPositionSeconds !== undefined &&
+      lesson.durationSeconds !== null &&
+      dto.lastPositionSeconds > lesson.durationSeconds
+    ) {
+      throw new BadRequestException(
+        'Position vidÃ©o invalide',
+      );
+    }
+
+    const now = new Date();
+
+    const result = await this.prisma.$transaction(
+      async (tx) => {
+        const existing = await tx.lessonProgress.findUnique({
+          where: {
+            userId_lessonId: {
+              userId: user.id,
+              lessonId,
+            },
+          },
+        });
+
+        const progressPercent = Math.max(
+          existing?.progressPercent ?? 0,
+          dto.progressPercent,
+        );
+
+        const isComplete =
+          lesson.type === LessonType.TEXTE
+            ? progressPercent >= 100
+            : lesson.type === LessonType.VIDEO &&
+              progressPercent >= 80;
+
+        const newlyCompleted =
+          isComplete && !existing?.completedAt;
+
+        const progress = await tx.lessonProgress.upsert({
+          where: {
+            userId_lessonId: {
+              userId: user.id,
+              lessonId,
+            },
+          },
+          create: {
+            userId: user.id,
+            lessonId,
+            progressPercent,
+            lastPositionSeconds:
+              dto.lastPositionSeconds ?? null,
+            completedAt: isComplete ? now : null,
+          },
+          update: {
+            progressPercent,
+            ...(dto.lastPositionSeconds !== undefined && {
+              lastPositionSeconds: dto.lastPositionSeconds,
+            }),
+            ...(newlyCompleted && {
+              completedAt: now,
+            }),
+          },
+        });
+
+        let activityResult: Awaited<
+  ReturnType<GamificationService['recordActivity']>
+> | null = null;
+
+        if (newlyCompleted) {
+          activityResult = await this.gamificationService.recordActivity(
+            tx,
+            {
+              userId: user.id,
+              clientId: dto.clientId,
+              type: ActivityType.LECON_TERMINEE,
+              refType: ActivityRefType.LESSON,
+              refId: lessonId,
+              occurredAt: now,
+            },
+          );
+        }
+
+        const streak = await tx.userStreak.findUnique({
+          where: { userId: user.id },
+        });
+
+        return {
+          progress,
+          newlyCompleted,
+          activity: activityResult,
+          streak,
+        };
+      },
+    );
+
+    return {
+      progress: result.progress,
+      completed: result.progress.completedAt !== null,
+      newlyCompleted: result.newlyCompleted,
+      activity: result.activity,
+      streak: result.streak
+        ? {
+            currentStreak: result.streak.currentStreak,
+            longestStreak: result.streak.longestStreak,
+            lastActiveDate: result.streak.lastActiveDate,
+          }
+        : {
+            currentStreak: 0,
+            longestStreak: 0,
+            lastActiveDate: null,
+          },
+    };
+  }
+
+  // --------------------------------------------------
+  // REPRISE DE LECTURE
+  // --------------------------------------------------
+
+  async findMyProgress(user: CurrentUser) {
+    if (user.role !== 'ELEVE') {
+      throw new ForbiddenException(
+        'Cette fonctionnalitÃ© est rÃ©servÃ©e aux Ã©lÃ¨ves',
+      );
+    }
+
+    if (!user.classId) {
+      throw new NotFoundException(
+        'Aucune classe associÃ©e Ã  votre profil',
+      );
+    }
+
+    return this.prisma.lessonProgress.findMany({
+      where: {
+        userId: user.id,
+        lesson: {
+          classId: user.classId,
+          status: ContentStatus.PUBLIE,
+          chapter: {
+            status: ContentStatus.PUBLIE,
+          },
+        },
+      },
+      orderBy: {
+        updatedAt: 'desc',
+      },
+      select: {
+        progressPercent: true,
+        lastPositionSeconds: true,
+        completedAt: true,
+        updatedAt: true,
+        lesson: {
+          select: {
+            id: true,
+            title: true,
+            type: true,
+            durationSeconds: true,
+            version: true,
+            chapter: {
+              select: {
+                id: true,
+                title: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+}
+
+
+============================================================
+FICHIER : src\modules\gamification\services\gamification.service.ts
+============================================================
+
+
+import {
+  BadRequestException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
+import { randomUUID } from 'crypto';
+
+import {
+  ActivityRefType,
+  ActivityType,
+  AttemptStatus,
+  ContentStatus,
+  AssessmentKind,
+  Prisma,
+} from '../../../generated/prisma/client';
+
+import { PrismaService } from '../../../prisma/prisma.service';
+import { ActivityQueryDto } from '../dto/activity-query.dto';
+
+const FUTURE_TOLERANCE_MS = 5 * 60 * 1000;
+const MAX_ACTIVITY_AGE_MS = 48 * 60 * 60 * 1000;
+const MAX_CALENDAR_DAYS = 366;
+
+type RecordActivityInput = {
+  userId: string;
+  clientId: string;
+  type: ActivityType;
+  refType: ActivityRefType;
+  refId: string;
+  occurredAt: Date;
+};
+
+type AuthenticatedStudent = {
+  id: string;
+  classId: string | null;
+};
+
+@Injectable()
+export class GamificationService {
+  constructor(private readonly prisma: PrismaService) {}
+
+  private toUtcDay(date: Date): Date {
+    return new Date(
+      Date.UTC(
+        date.getUTCFullYear(),
+        date.getUTCMonth(),
+        date.getUTCDate(),
+      ),
+    );
+  }
+
+  private dateKey(date: Date): string {
+    return this.toUtcDay(date).toISOString().slice(0, 10);
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const result = this.toUtcDay(date);
+    result.setUTCDate(result.getUTCDate() + days);
+    return result;
+  }
+
+  private differenceInDays(first: Date, second: Date): number {
+    return Math.round(
+      (this.toUtcDay(second).getTime() -
+        this.toUtcDay(first).getTime()) /
+        86_400_000,
+    );
+  }
+
+  private validateOccurredAt(occurredAt: Date): Date {
+    if (Number.isNaN(occurredAt.getTime())) {
+      throw new BadRequestException('Date dâ€™activitÃ© invalide');
+    }
+
+    const now = Date.now();
+    const timestamp = occurredAt.getTime();
+
+    if (timestamp > now + FUTURE_TOLERANCE_MS) {
+      throw new BadRequestException(
+        'Une activitÃ© ne peut pas Ãªtre enregistrÃ©e dans le futur',
+      );
+    }
+
+    if (timestamp < now - MAX_ACTIVITY_AGE_MS) {
+      throw new BadRequestException(
+        'Une activitÃ© datant de plus de 48 heures ne peut pas Ãªtre enregistrÃ©e',
+      );
+    }
+
+    return this.toUtcDay(occurredAt);
+  }
+
+  private isStreakActivity(type: ActivityType): boolean {
+    return (
+      type !== ActivityType.CONTRIBUTION_PUBLIEE &&
+      type !== ActivityType.FORUM_REPONSE
+    );
+  }
+
+  /**
+   * VÃ©rifie que l'activitÃ© correspond rÃ©ellement Ã  une action
+   * effectuÃ©e par l'Ã©lÃ¨ve connectÃ©.
+   */
+  private async validateActivityReference(
+    tx: Prisma.TransactionClient,
+    user: AuthenticatedStudent,
+    input: RecordActivityInput,
+  ): Promise<void> {
+    if (input.type === ActivityType.CONTRIBUTION_PUBLIEE) {
+      throw new BadRequestException(
+        'La publication dâ€™une contribution est enregistrÃ©e par le serveur',
+      );
+    }
+
+    if (
+      input.type === ActivityType.LECON_TERMINEE &&
+      input.refType === ActivityRefType.LESSON
+    ) {
+      if (!user.classId) {
+        throw new BadRequestException('Classe de lâ€™Ã©lÃ¨ve introuvable');
+      }
+
+      const progress = await tx.lessonProgress.findFirst({
+        where: {
+          userId: user.id,
+          lessonId: input.refId,
+          completedAt: { not: null },
+          lesson: {
+            classId: user.classId,
+            status: ContentStatus.PUBLIE,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (!progress) {
+        throw new NotFoundException(
+          'LeÃ§on terminÃ©e introuvable pour cet Ã©lÃ¨ve',
+        );
+      }
+
+      return;
+    }
+
+    if (
+      (input.type === ActivityType.EXERCICE_TERMINE ||
+        input.type === ActivityType.QUIZ_TERMINE) &&
+      input.refType === ActivityRefType.ASSESSMENT
+    ) {
+      if (!user.classId) {
+        throw new BadRequestException('Classe de lâ€™Ã©lÃ¨ve introuvable');
+      }
+
+      const expectedKind =
+        input.type === ActivityType.EXERCICE_TERMINE
+          ? AssessmentKind.EXERCICE
+          : AssessmentKind.QUIZ;
+
+      const attempt = await tx.attempt.findFirst({
+        where: {
+          userId: user.id,
+          assessmentId: input.refId,
+          status: AttemptStatus.TERMINEE,
+          assessment: {
+            classId: user.classId,
+            status: ContentStatus.PUBLIE,
+            kind: expectedKind,
+          },
+        },
+        select: { id: true },
+      });
+
+      if (!attempt) {
+        throw new NotFoundException(
+          'Tentative terminÃ©e introuvable pour cet Ã©lÃ¨ve',
+        );
+      }
+
+      return;
+    }
+
+    if (
+      input.type === ActivityType.FORUM_REPONSE &&
+      input.refType === ActivityRefType.FORUM_ANSWER
+    ) {
+      const answer = await tx.forumAnswer.findFirst({
+        where: {
+          id: input.refId,
+          authorId: user.id,
+        },
+        select: { id: true },
+      });
+
+      if (!answer) {
+        throw new NotFoundException(
+          'RÃ©ponse du forum introuvable pour cet Ã©lÃ¨ve',
+        );
+      }
+
+      return;
+    }
+
+    throw new BadRequestException(
+      'Le type dâ€™activitÃ© ne correspond pas au type de rÃ©fÃ©rence',
+    );
+  }
+
+  /**
+   * Enregistre une activitÃ© dans une transaction existante.
+   * Cette mÃ©thode est Ã©galement destinÃ©e aux autres modules.
+   */
+  async recordActivity(
+    tx: Prisma.TransactionClient,
+    input: RecordActivityInput,
+  ) {
+    const activityDate = this.validateOccurredAt(input.occurredAt);
+
+    const inserted = await tx.activityLog.createMany({
+      data: {
+        userId: input.userId,
+        clientId: input.clientId,
+        type: input.type,
+        refType: input.refType,
+        refId: input.refId,
+        occurredAt: input.occurredAt,
+        activityDate,
+      },
+      skipDuplicates: true,
+    });
+
+    // MÃªme clientId : activitÃ© dÃ©jÃ  enregistrÃ©e.
+    // Ne surtout pas toucher Ã  la flamme.
+    if (inserted.count === 0) {
+      return {
+        recorded: false,
+        duplicate: true,
+        streakUpdated: false,
+      };
+    }
+
+    // Certaines activitÃ©s sont conservÃ©es dans le journal,
+    // mais ne comptent pas dans la flamme.
+    if (!this.isStreakActivity(input.type)) {
+      return {
+        recorded: true,
+        duplicate: false,
+        streakUpdated: false,
+      };
+    }
+
+    // CrÃ©er la ligne avant le verrouillage pour gÃ©rer
+    // Ã©galement le premier enregistrement d'un utilisateur.
+    await tx.userStreak.upsert({
+      where: { userId: input.userId },
+      create: {
+        userId: input.userId,
+        currentStreak: 0,
+        longestStreak: 0,
+      },
+      update: {},
+    });
+
+    // Verrouillage de la ligne : Ã©vite les mises Ã  jour concurrentes.
+    await tx.$queryRaw`
+      SELECT "userId"
+      FROM "user_streaks"
+      WHERE "userId" = ${input.userId}::uuid
+      FOR UPDATE
+    `;
+
+    const streak = await tx.userStreak.findUniqueOrThrow({
+      where: { userId: input.userId },
+    });
+
+    // Une activitÃ© hors ligne plus ancienne ne doit pas
+    // faire reculer la flamme dÃ©jÃ  calculÃ©e.
+    if (
+      streak.lastActiveDate &&
+      activityDate.getTime() < this.toUtcDay(streak.lastActiveDate).getTime()
+    ) {
+      return {
+        recorded: true,
+        duplicate: false,
+        streakUpdated: false,
+      };
+    }
+
+    let currentStreak = streak.currentStreak;
+
+    if (!streak.lastActiveDate) {
+      currentStreak = 1;
+    } else {
+      const difference = this.differenceInDays(
+        streak.lastActiveDate,
+        activityDate,
+      );
+
+      if (difference === 0) {
+        // Plusieurs activitÃ©s le mÃªme jour : aucun incrÃ©ment.
+        return {
+          recorded: true,
+          duplicate: false,
+          streakUpdated: false,
+        };
+      }
+
+      if (difference === 1) {
+        currentStreak += 1;
+      } else {
+        currentStreak = 1;
+      }
+    }
+
+    const longestStreak = Math.max(
+      streak.longestStreak,
+      currentStreak,
+    );
+
+    await tx.userStreak.update({
+      where: { userId: input.userId },
+      data: {
+        currentStreak,
+        longestStreak,
+        lastActiveDate: activityDate,
+      },
+    });
+
+    return {
+      recorded: true,
+      duplicate: false,
+      streakUpdated: true,
+      currentStreak,
+      longestStreak,
+    };
+  }
+
+  /**
+   * Point d'entrÃ©e utilisÃ© par le contrÃ´leur.
+   * VÃ©rifie la rÃ©fÃ©rence puis enregistre dans la mÃªme transaction.
+   */
+  async recordActivityForUser(
+    user: AuthenticatedStudent,
+    input: RecordActivityInput,
+  ) {
+    return this.prisma.$transaction(async (tx) => {
+      await this.validateActivityReference(tx, user, input);
+      return this.recordActivity(tx, input);
+    });
+  }
+
+  /**
+   * Enregistrement d'une activitÃ© dÃ©clenchÃ©e cÃ´tÃ© serveur.
+   * Exemple : contribution publiÃ©e.
+   */
+  async recordServerActivity(
+    tx: Prisma.TransactionClient,
+    input: Omit<RecordActivityInput, 'clientId'>,
+  ) {
+    return this.recordActivity(tx, {
+      ...input,
+      clientId: randomUUID(),
+    });
+  }
+
+  async getStreak(userId: string) {
+    const streak = await this.prisma.userStreak.findUnique({
+      where: { userId },
+    });
+
+    if (!streak) {
+      return {
+        currentStreak: 0,
+        longestStreak: 0,
+        lastActiveDate: null,
+      };
+    }
+
+    const today = this.toUtcDay(new Date());
+    const yesterday = this.addDays(today, -1);
+
+    const isCurrent =
+      streak.lastActiveDate !== null &&
+      this.toUtcDay(streak.lastActiveDate).getTime() >=
+        yesterday.getTime();
+
+    return {
+      currentStreak: isCurrent ? streak.currentStreak : 0,
+      longestStreak: streak.longestStreak,
+      lastActiveDate: streak.lastActiveDate,
+    };
+  }
+
+  async getActivityCalendar(
+    userId: string,
+    query: ActivityQueryDto,
+  ) {
+    const today = this.toUtcDay(new Date());
+
+    const to = query.to
+      ? this.toUtcDay(new Date(`${query.to}T00:00:00.000Z`))
+      : today;
+
+    const from = query.from
+      ? this.toUtcDay(new Date(`${query.from}T00:00:00.000Z`))
+      : this.addDays(to, -29);
+
+    if (
+      Number.isNaN(from.getTime()) ||
+      Number.isNaN(to.getTime())
+    ) {
+      throw new BadRequestException('PÃ©riode invalide');
+    }
+
+    if (from.getTime() > to.getTime()) {
+      throw new BadRequestException(
+        'La date de dÃ©but doit prÃ©cÃ©der la date de fin',
+      );
+    }
+
+    const numberOfDays =
+      this.differenceInDays(from, to) + 1;
+
+    if (numberOfDays > MAX_CALENDAR_DAYS) {
+      throw new BadRequestException(
+        `La pÃ©riode ne peut pas dÃ©passer ${MAX_CALENDAR_DAYS} jours`,
+      );
+    }
+
+    const activities = await this.prisma.activityLog.findMany({
+      where: {
+        userId,
+        activityDate: {
+          gte: from,
+          lt: this.addDays(to, 1),
+        },
+      },
+      select: {
+        activityDate: true,
+      },
+      distinct: ['activityDate'],
+      orderBy: {
+        activityDate: 'asc',
+      },
+    });
+
+    const activeDays = activities.map((activity) =>
+      this.dateKey(activity.activityDate),
+    );
+
+    return {
+      from: this.dateKey(from),
+      to: this.dateKey(to),
+      activeDays,
+      totalActiveDays: activeDays.length,
+    };
+  }
+
+  /**
+   * Reconstruit le cache UserStreak Ã  partir du journal immuable.
+   */
+  async recomputeStreak(userId: string) {
+    return this.prisma.$transaction(async (tx) => {
+      await tx.userStreak.upsert({
+        where: { userId },
+        create: {
+          userId,
+          currentStreak: 0,
+          longestStreak: 0,
+        },
+        update: {},
+      });
+
+      await tx.$queryRaw`
+        SELECT "userId"
+        FROM "user_streaks"
+        WHERE "userId" = ${userId}::uuid
+        FOR UPDATE
+      `;
+
+      const activities = await tx.activityLog.findMany({
+        where: {
+          userId,
+          type: {
+            notIn: [
+              ActivityType.CONTRIBUTION_PUBLIEE,
+              ActivityType.FORUM_REPONSE,
+            ],
+          },
+        },
+        select: {
+          activityDate: true,
+        },
+        orderBy: {
+          activityDate: 'asc',
+        },
+      });
+
+      const dates = [
+        ...new Set(
+          activities.map((activity) =>
+            this.dateKey(activity.activityDate),
+          ),
+        ),
+      ].map((date) => new Date(`${date}T00:00:00.000Z`));
+
+      let longestStreak = 0;
+      let runningStreak = 0;
+
+      for (let i = 0; i < dates.length; i++) {
+        if (
+          i > 0 &&
+          this.differenceInDays(dates[i - 1], dates[i]) === 1
+        ) {
+          runningStreak += 1;
+        } else {
+          runningStreak = 1;
+        }
+
+        longestStreak = Math.max(longestStreak, runningStreak);
+      }
+
+      const currentStreak = runningStreak;
+      const lastActiveDate =
+  dates.length > 0 ? dates[dates.length - 1] : null;
+
+      const updated = await tx.userStreak.update({
+        where: { userId },
+        data: {
+          currentStreak,
+          longestStreak,
+          lastActiveDate,
+        },
+      });
+
+      return {
+        currentStreak: updated.currentStreak,
+        longestStreak: updated.longestStreak,
+        lastActiveDate: updated.lastActiveDate,
+      };
+    });
+  }
+}
+
+
+============================================================
+FICHIER : src\prisma\prisma.module.ts
+============================================================
+
+import { Global, Module } from '@nestjs/common';
+import { PrismaService } from './prisma.service';
+
+@Global()
+@Module({
+  providers: [PrismaService],
+  exports: [PrismaService],
+})
+export class PrismaModule {}
+
+============================================================
+FICHIER : src\prisma\prisma.service.spec.ts
+============================================================
+
+import { Test, TestingModule } from '@nestjs/testing';
+import { ConfigService } from '@nestjs/config';
+import { PrismaService } from './prisma.service';
+import { ClsService } from 'nestjs-cls';
+
+describe('PrismaService', () => {
+  let service: PrismaService;
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        PrismaService,
+        {
+          provide: ConfigService,
+          useValue: {
+            getOrThrow: () => process.env.DATABASE_URL ?? 'postgresql://unused',
+          },
+        },
+        {
+          provide: ClsService,
+          useValue: { get: () => undefined },
+        },
+      ],
+    }).compile();
+
+    service = module.get<PrismaService>(PrismaService);
+  });
+
+  it('should be defined', () => {
+    expect(service).toBeDefined();
+  });
+});
+
+
+============================================================
+FICHIER : src\prisma\prisma.service.ts
+============================================================
+
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { PrismaPg } from '@prisma/adapter-pg';
+import { PrismaClient } from '../generated/prisma/client';
+import { ClsService } from 'nestjs-cls';
+import { ForbiddenException } from '@nestjs/common';
+import type { ClsStore } from '../common/cls/cls-store.interface';
+
+@Injectable()
+export class PrismaService
+  extends PrismaClient
+  implements OnModuleInit, OnModuleDestroy
+{
+  readonly scopedClient;
+
+  constructor(config: ConfigService, cls: ClsService<ClsStore>) {
+    const adapter = new PrismaPg({
+      connectionString: config.getOrThrow<string>('DATABASE_URL'),
+    });
+    super({ adapter });
+
+    const classScopedModels = [
+      'ClassSubject',
+      'Chapter',
+      'Lesson',
+      'Assessment',
+      'Event',
+      'Contribution',
+      'ForumThread',
+      'ForumAnswer',
+    ];
+
+    this.scopedClient = this.$extends({
+      query: {
+        $allModels: {
+          async $allOperations({ model, operation, args, query }) {
+            if (!classScopedModels.includes(model)) {
+              return query(args);
+            }
+
+            if (cls.get('role') !== 'ELEVE') {
+              return query(args);
+            }
+
+            const classId = cls.get('classId');
+            if (!classId) {
+              throw new ForbiddenException('Student class is missing from context');
+            }
+
+            const operationArgs = args as {
+              data?: Record<string, unknown> | Array<Record<string, unknown>>;
+              where?: Record<string, unknown>;
+            };
+
+            if (operation === 'create' || operation === 'createMany') {
+              if (operation === 'create') {
+                operationArgs.data = {
+                  ...(operationArgs.data as Record<string, unknown> | undefined),
+                  classId,
+                };
+              } else if (Array.isArray(operationArgs.data)) {
+                operationArgs.data = operationArgs.data.map((item) => ({ ...item, classId }));
+              } else if (operationArgs.data) {
+                operationArgs.data = {
+                  ...(operationArgs.data as Record<string, unknown>),
+                  classId,
+                };
+              }
+              return query(args);
+            }
+
+            if (operationArgs.where) {
+              operationArgs.where = { ...operationArgs.where, classId };
+            } else {
+              operationArgs.where = { classId };
+            }
+            return query(args);
+          },
+        },
+      },
+    });
+  }
+
+  async onModuleInit() {
+    await this.$connect();
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+  }
+}

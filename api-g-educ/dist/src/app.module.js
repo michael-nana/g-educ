@@ -26,6 +26,8 @@ const users_module_1 = require("./modules/users/users.module");
 const gamification_module_1 = require("./modules/gamification/gamification.module");
 const notifications_module_1 = require("./modules/notifications/notifications.module");
 const courses_module_1 = require("./modules/courses/courses.module");
+const assessments_module_1 = require("./modules/assessments/assessments.module");
+const events_module_1 = require("./modules/events/events.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -57,6 +59,8 @@ exports.AppModule = AppModule = __decorate([
             schedule_1.ScheduleModule.forRoot(),
             notifications_module_1.NotificationsModule,
             courses_module_1.CoursesModule,
+            assessments_module_1.AssessmentsModule,
+            events_module_1.EventsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [
