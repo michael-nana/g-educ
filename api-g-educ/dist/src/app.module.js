@@ -28,6 +28,7 @@ const notifications_module_1 = require("./modules/notifications/notifications.mo
 const courses_module_1 = require("./modules/courses/courses.module");
 const assessments_module_1 = require("./modules/assessments/assessments.module");
 const events_module_1 = require("./modules/events/events.module");
+const planner_module_1 = require("./modules/planner/planner.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -61,6 +62,7 @@ exports.AppModule = AppModule = __decorate([
             courses_module_1.CoursesModule,
             assessments_module_1.AssessmentsModule,
             events_module_1.EventsModule,
+            planner_module_1.PlannerModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

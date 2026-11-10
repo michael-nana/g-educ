@@ -33,7 +33,6 @@ export class EventReminderService {
     timeZone: 'Africa/Ouagadougou',
   })
   async sendReminders() {
-      this.logger.log('Déclenchement du worker des rappels.');
 
     try {
       await this.prisma.$transaction(
@@ -62,9 +61,7 @@ export class EventReminderService {
   LIMIT 50
   FOR UPDATE OF reminder SKIP LOCKED
 `;
-  this.logger.log(
-  `${reminders.length} rappel(s) à traiter.`,
-);
+
           for (const reminder of reminders) {
             try {
               await this.notificationsService.notifyClass(
