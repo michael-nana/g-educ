@@ -1,13 +1,18 @@
 import { PrismaService } from '../../../prisma/prisma.service';
+import { AssessmentFilterDto } from '../dto/assessment-filter.dto';
 import { AuditService } from '../../audit/services/audit.service';
 import type { UpdateAssessmentDto } from '../dto/update-assessment.dto';
 import { TeacherScopeService } from '../../academics/services/teacher-scope.service';
+import { AttemptFilterDto } from '../dto/attempt-filter.dto';
+import { SubmitAttemptDto } from '../dto/submit-attempt.dto';
+import { GamificationService } from '../../gamification/services/gamification.service';
 import type { CreateAssessmentDto } from '../dto/create-assessment.dto';
 export declare class AssessmentsService {
     private readonly prisma;
     private readonly auditService;
     private readonly teacherScope;
-    constructor(prisma: PrismaService, auditService: AuditService, teacherScope: TeacherScopeService);
+    private readonly gamificationService;
+    constructor(prisma: PrismaService, auditService: AuditService, teacherScope: TeacherScopeService, gamificationService: GamificationService);
     create(user: {
         id: string;
         role: string;
@@ -68,6 +73,76 @@ export declare class AssessmentsService {
         kind: import("../../../generated/prisma/enums").AssessmentKind;
         instructions: string | null;
         passingPercent: number | null;
+    }>;
+    findPublishedForStudent(user: {
+        id: string;
+        role: string;
+        classId: string | null;
+    }, filters: AssessmentFilterDto): Promise<{
+        id: string;
+        position: number;
+        title: string;
+        version: number;
+        publishedAt: Date | null;
+        durationSeconds: number | null;
+        kind: import("../../../generated/prisma/enums").AssessmentKind;
+        instructions: string | null;
+        passingPercent: number | null;
+        chapter: {
+            id: string;
+            title: string;
+            classSubject: {
+                id: string;
+                subject: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                };
+            };
+        };
+        _count: {
+            questions: number;
+        };
+    }[]>;
+    findPublishedOneForStudent(user: {
+        id: string;
+        role: string;
+        classId: string | null;
+    }, assessmentId: string): Promise<{
+        id: string;
+        position: number;
+        title: string;
+        version: number;
+        publishedAt: Date | null;
+        durationSeconds: number | null;
+        kind: import("../../../generated/prisma/enums").AssessmentKind;
+        instructions: string | null;
+        passingPercent: number | null;
+        chapter: {
+            id: string;
+            title: string;
+            classSubject: {
+                id: string;
+                subject: {
+                    id: string;
+                    name: string;
+                    slug: string;
+                };
+            };
+        };
+        questions: {
+            id: string;
+            position: number;
+            type: import("../../../generated/prisma/enums").QuestionType;
+            statement: string;
+            imageKey: string | null;
+            points: number;
+            options: {
+                id: string;
+                label: string;
+                position: number;
+            }[];
+        }[];
     }>;
     publish(user: {
         id: string;
@@ -131,5 +206,131 @@ export declare class AssessmentsService {
         kind: import("../../../generated/prisma/enums").AssessmentKind;
         instructions: string | null;
         passingPercent: number | null;
+    }>;
+    submitAttempt(user: {
+        id: string;
+        role: string;
+        classId: string | null;
+    }, assessmentId: string, dto: SubmitAttemptDto): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import("../../../generated/prisma/enums").AttemptStatus;
+        durationSeconds: number | null;
+        assessmentId: string;
+        assessmentVersion: number;
+        startedAt: Date;
+        submittedAt: Date | null;
+        score: number | null;
+        maxScore: number | null;
+        assessment: {
+            id: string;
+            title: string;
+            durationSeconds: number | null;
+            kind: import("../../../generated/prisma/enums").AssessmentKind;
+            passingPercent: number | null;
+            chapter: {
+                id: string;
+                title: string;
+            };
+        };
+        answers: {
+            id: string;
+            isCorrect: boolean;
+            pointsAwarded: number;
+            answeredAt: Date;
+            options: {
+                option: {
+                    id: string;
+                    label: string;
+                };
+            }[];
+            question: {
+                id: string;
+                position: number;
+                type: import("../../../generated/prisma/enums").QuestionType;
+                statement: string;
+                explanation: string | null;
+                points: number;
+                options: {
+                    id: string;
+                    label: string;
+                    position: number;
+                    isCorrect: boolean;
+                }[];
+            };
+        }[];
+    }>;
+    findMyAttempts(user: {
+        id: string;
+        role: string;
+    }, filters: AttemptFilterDto): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import("../../../generated/prisma/enums").AttemptStatus;
+        durationSeconds: number | null;
+        assessmentId: string;
+        assessmentVersion: number;
+        startedAt: Date;
+        submittedAt: Date | null;
+        score: number | null;
+        maxScore: number | null;
+        assessment: {
+            id: string;
+            title: string;
+            kind: import("../../../generated/prisma/enums").AssessmentKind;
+            passingPercent: number | null;
+        };
+    }[]>;
+    findMyAttemptById(user: {
+        id: string;
+        role: string;
+    }, attemptId: string): Promise<{
+        id: string;
+        createdAt: Date;
+        status: import("../../../generated/prisma/enums").AttemptStatus;
+        durationSeconds: number | null;
+        assessmentId: string;
+        assessmentVersion: number;
+        startedAt: Date;
+        submittedAt: Date | null;
+        score: number | null;
+        maxScore: number | null;
+        assessment: {
+            id: string;
+            title: string;
+            durationSeconds: number | null;
+            kind: import("../../../generated/prisma/enums").AssessmentKind;
+            passingPercent: number | null;
+            chapter: {
+                id: string;
+                title: string;
+            };
+        };
+        answers: {
+            id: string;
+            isCorrect: boolean;
+            pointsAwarded: number;
+            answeredAt: Date;
+            options: {
+                option: {
+                    id: string;
+                    label: string;
+                };
+            }[];
+            question: {
+                id: string;
+                position: number;
+                type: import("../../../generated/prisma/enums").QuestionType;
+                statement: string;
+                explanation: string | null;
+                points: number;
+                options: {
+                    id: string;
+                    label: string;
+                    position: number;
+                    isCorrect: boolean;
+                }[];
+            };
+        }[];
     }>;
 }

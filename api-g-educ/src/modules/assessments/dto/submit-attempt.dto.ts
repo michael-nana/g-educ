@@ -19,10 +19,7 @@ export class SubmitAttemptDto {
   @IsDateString()
   startedAt!: string;
 
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  durationSeconds?: number;
+
 
   @IsArray()
   @ValidateNested({ each: true })

@@ -13,6 +13,31 @@ const http_exception_filter_1 = require("./common/filters/http-exception.filter"
 const serialization_interceptor_1 = require("./common/interceptors/serialization.interceptor");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
+    const corsOrigins = [
+        ...(process.env.CORS_ORIGINS
+            ?.split(',')
+            .map((origin) => origin.trim())
+            .filter(Boolean) ?? []),
+        'http://localhost:5173',
+        'http://127.0.0.1:5173',
+    ];
+    app.enableCors({
+        origin: [...new Set(corsOrigins)],
+        methods: [
+            'GET',
+            'HEAD',
+            'POST',
+            'PUT',
+            'PATCH',
+            'DELETE',
+            'OPTIONS',
+        ],
+        allowedHeaders: [
+            'Content-Type',
+            'Authorization',
+        ],
+        credentials: true,
+    });
     app.setGlobalPrefix('api/v1');
     app.useGlobalPipes(new common_1.ValidationPipe({
         whitelist: true,
@@ -23,10 +48,6 @@ async function bootstrap() {
     app.useGlobalInterceptors(new serialization_interceptor_1.SerializationInterceptor());
     app.use((0, compression_1.default)());
     app.use((0, helmet_1.default)());
-    app.enableCors({
-        origin: process.env.CORS_ORIGINS?.split(',').map((origin) => origin.trim()) ?? false,
-        credentials: true,
-    });
     const config = new swagger_1.DocumentBuilder()
         .setTitle('G-Educ API')
         .setDescription('API backend de la plateforme G-Educ')
