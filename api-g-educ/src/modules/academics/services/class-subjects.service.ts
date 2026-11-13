@@ -12,6 +12,79 @@ import type { AssignSubjectDto } from '../dto/assign-subject.dto';
 export class ClassSubjectsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  async findAllAssignments() {
+    return this.prisma.classSubject.findMany({
+      select: {
+        id: true,
+        classId: true,
+        subjectId: true,
+        coefficient: true,
+        position: true,
+        createdAt: true,
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isActive: true,
+          },
+        },
+        class: {
+          select: {
+            id: true,
+            code: true,
+            label: true,
+          },
+        },
+      },
+      orderBy: [
+        { class: { position: 'asc' } },
+        { position: 'asc' },
+      ],
+    });
+  }
+
+  async findAll(classId: string) {
+    const schoolClass = await this.prisma.class.findUnique({
+      where: { id: classId },
+      select: { id: true },
+    });
+
+    if (!schoolClass) {
+      throw new NotFoundException('Classe introuvable.');
+    }
+
+    return this.prisma.classSubject.findMany({
+      where: { classId },
+      select: {
+        id: true,
+        classId: true,
+        subjectId: true,
+        coefficient: true,
+        position: true,
+        createdAt: true,
+        subject: {
+          select: {
+            id: true,
+            name: true,
+            slug: true,
+            isActive: true,
+          },
+        },
+        class: {
+          select: {
+            id: true,
+            code: true,
+            label: true,
+          },
+        },
+      },
+      orderBy: {
+        position: 'asc',
+      },
+    });
+  }
+
   async assign(classId: string, dto: AssignSubjectDto) {
     const schoolClass = await this.prisma.class.findUnique({
       where: { id: classId },

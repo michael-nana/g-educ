@@ -161,16 +161,20 @@ La route de fichier est actuellement dédiée à l’upload PDF ; l’upload et 
 | Lister les demandes de changement de classe | `GET /class-change-requests` | `ADMINISTRATEUR` |
 | Approuver une demande | `POST /class-change-requests/:id/approve` | `ADMINISTRATEUR` |
 | Refuser une demande | `POST /class-change-requests/:id/reject` | `ADMINISTRATEUR` |
+| Consulter les statistiques du tableau de bord | `GET /admin/dashboard?period=14` | `ADMINISTRATEUR` — `period` accepte `14`, `30` ou `365` jours |
 | Lister les classes | `GET /classes` | Public |
 | Consulter l’année scolaire courante | `GET /academic-years/current` | Authentifié |
+| Lister les années scolaires | `GET /academic-years` | `ADMINISTRATEUR` |
 | Créer une année scolaire | `POST /academic-years` | `ADMINISTRATEUR` |
 | Créer une matière | `POST /subjects` | `ADMINISTRATEUR` |
 | Modifier une matière | `PATCH /subjects/:id` | `ADMINISTRATEUR` |
 | Associer une matière à une classe | `POST /classes/:classId/subjects` | `ADMINISTRATEUR` |
+| Lister les matières d’une classe | `GET /classes/:classId/subjects` | `ADMINISTRATEUR` |
+| Lister toutes les affectations classe-matière | `GET /class-subjects` | `ADMINISTRATEUR` |
 | Consulter le journal d’audit | `GET /audit` | `ADMINISTRATEUR` |
 | Envoyer une annonce | `POST /notifications/announcements` | `ADMINISTRATEUR` |
 
-**Limite actuelle :** aucune route de lecture/liste des matières n’apparaît dans les contrôleurs examinés.
+`GET /admin/dashboard` renvoie les effectifs actifs, les activités du jour, les activités quotidiennes et les cinq classes les plus actives, les éléments en attente (contributions, signalements et changements de classe) et les trois prochains événements publiés. La période du graphique accepte `14`, `30` ou `365` jours, aujourd’hui inclus. Un élève est compté comme actif pour une journée s’il a au moins une activité enregistrée ce jour-là ; les dates sont calculées en UTC. Les flammes actives représentent la somme des jours de série en cours pour les élèves actifs dont la dernière activité date d’aujourd’hui ou d’hier.
 
 ## Fonctionnalités sans endpoints actuellement observés
 
@@ -178,9 +182,9 @@ Les contrôleurs inspectés ne présentent pas encore de routes pour :
 
 - le tableau de bord global de progression (`Progress`) : par exemple `GET /me/progress` et `GET /me/progress/subjects/:classSubjectId` ;
 - la synchronisation hors-ligne (`Sync`) ;
-- les contributions des élèves ;
+- la liste et la modération des contributions des élèves (le tableau de bord expose uniquement leur nombre en attente) ;
 - le forum ;
-- la modération des contenus et signalements.
+- la liste et le traitement des signalements (le tableau de bord expose uniquement leur nombre ouvert).
 
 ## Documentation interactive
 

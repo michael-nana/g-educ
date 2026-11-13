@@ -17,6 +17,75 @@ let ClassSubjectsService = class ClassSubjectsService {
     constructor(prisma) {
         this.prisma = prisma;
     }
+    async findAllAssignments() {
+        return this.prisma.classSubject.findMany({
+            select: {
+                id: true,
+                classId: true,
+                subjectId: true,
+                coefficient: true,
+                position: true,
+                createdAt: true,
+                subject: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        isActive: true,
+                    },
+                },
+                class: {
+                    select: {
+                        id: true,
+                        code: true,
+                        label: true,
+                    },
+                },
+            },
+            orderBy: [
+                { class: { position: 'asc' } },
+                { position: 'asc' },
+            ],
+        });
+    }
+    async findAll(classId) {
+        const schoolClass = await this.prisma.class.findUnique({
+            where: { id: classId },
+            select: { id: true },
+        });
+        if (!schoolClass) {
+            throw new common_1.NotFoundException('Classe introuvable.');
+        }
+        return this.prisma.classSubject.findMany({
+            where: { classId },
+            select: {
+                id: true,
+                classId: true,
+                subjectId: true,
+                coefficient: true,
+                position: true,
+                createdAt: true,
+                subject: {
+                    select: {
+                        id: true,
+                        name: true,
+                        slug: true,
+                        isActive: true,
+                    },
+                },
+                class: {
+                    select: {
+                        id: true,
+                        code: true,
+                        label: true,
+                    },
+                },
+            },
+            orderBy: {
+                position: 'asc',
+            },
+        });
+    }
     async assign(classId, dto) {
         const schoolClass = await this.prisma.class.findUnique({
             where: { id: classId },

@@ -25,13 +25,34 @@ let ClassSubjectsController = class ClassSubjectsController {
     constructor(classSubjectsService) {
         this.classSubjectsService = classSubjectsService;
     }
+    findAllAssignments() {
+        return this.classSubjectsService.findAllAssignments();
+    }
+    findAllForClass(classId) {
+        return this.classSubjectsService.findAll(classId);
+    }
     assign(classId, dto) {
         return this.classSubjectsService.assign(classId, dto);
     }
 };
 exports.ClassSubjectsController = ClassSubjectsController;
 __decorate([
-    (0, common_1.Post)(),
+    (0, common_1.Get)('class-subjects'),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMINISTRATEUR),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ClassSubjectsController.prototype, "findAllAssignments", null);
+__decorate([
+    (0, common_1.Get)('classes/:classId/subjects'),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMINISTRATEUR),
+    __param(0, (0, common_1.Param)('classId', new common_1.ParseUUIDPipe())),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", void 0)
+], ClassSubjectsController.prototype, "findAllForClass", null);
+__decorate([
+    (0, common_1.Post)('classes/:classId/subjects'),
     (0, roles_decorator_1.Roles)(client_1.Role.ADMINISTRATEUR),
     __param(0, (0, common_1.Param)('classId', new common_1.ParseUUIDPipe())),
     __param(1, (0, common_1.Body)()),
@@ -40,7 +61,7 @@ __decorate([
     __metadata("design:returntype", void 0)
 ], ClassSubjectsController.prototype, "assign", null);
 exports.ClassSubjectsController = ClassSubjectsController = __decorate([
-    (0, common_1.Controller)('classes/:classId/subjects'),
+    (0, common_1.Controller)(),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),
     __metadata("design:paramtypes", [class_subjects_service_1.ClassSubjectsService])
 ], ClassSubjectsController);

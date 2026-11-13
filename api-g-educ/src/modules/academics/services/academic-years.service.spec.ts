@@ -10,6 +10,7 @@ describe('AcademicYearsService', () => {
   const prismaMock = {
     academicYear: {
       findFirst: jest.fn(),
+      findMany: jest.fn(),
       updateMany: jest.fn(),
       create: jest.fn(),
     },
@@ -40,5 +41,17 @@ describe('AcademicYearsService', () => {
 
   it('should be defined', () => {
     expect(service).toBeDefined();
+  });
+
+  it('lists academic years with the newest start date first', async () => {
+    const years = [{ id: 'year-1', label: '2026-2027' }];
+    prismaMock.academicYear.findMany.mockResolvedValue(years);
+
+    await expect(service.findAll()).resolves.toBe(years);
+    expect(prismaMock.academicYear.findMany).toHaveBeenCalledWith(
+      expect.objectContaining({
+        orderBy: { startDate: 'desc' },
+      }),
+    );
   });
 });

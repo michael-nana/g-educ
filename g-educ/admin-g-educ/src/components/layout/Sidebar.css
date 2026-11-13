@@ -1,151 +1,171 @@
-
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   bottom: 0;
   width: var(--sidebar-width);
-  background: #17243A;
-  color: #FFFFFF;
   display: flex;
   flex-direction: column;
+  padding: 22px 12px 14px;
+  color: #fff;
+  background: #0a0a0a;
+  font-family: 'Inter Tight', system-ui, sans-serif;
   z-index: 100;
   transition: transform 0.3s ease;
 }
 
+/* ---------- Marque ---------- */
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 25px 22px;
-  border-bottom: 1px solid rgba(255,255,255,0.08);
+  justify-content: space-between;
+  padding: 0 8px;
+  margin-bottom: 26px;
 }
 
-.brand-icon {
-  width: 43px;
-  height: 43px;
-  border-radius: 12px;
-  background: #3478F6;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: white;
+.brand-name {
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
-.brand-text h2 {
-  color: #FFFFFF;
-  font-size: 20px;
-  font-weight: 800;
-  letter-spacing: 1px;
-  margin: 0;
-}
-
-.brand-text span {
-  color: #AAB8CB;
-  font-size: 11px;
-}
-
-.sidebar-profile {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin: 20px 14px;
-  padding: 14px 12px;
-  background: rgba(255,255,255,0.06);
-  border-radius: 10px;
-}
-
-.profile-avatar {
-  width: 39px;
-  height: 39px;
-  background: #344967;
-  color: #FFFFFF;
-  border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.profile-info {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-  min-width: 0;
-}
-
-.profile-info strong {
-  font-size: 12px;
-  color: #FFFFFF;
-}
-
-.profile-info span {
+.brand-badge {
+  padding: 3px 8px;
+  color: #d6d6d8;
+  border: 1px solid #333;
+  border-radius: 999px;
   font-size: 10px;
-  color: #AAB8CB;
+  font-weight: 500;
 }
 
+/* ---------- Navigation ---------- */
 .sidebar-navigation {
   flex: 1;
   overflow-y: auto;
-  padding: 0 14px 20px;
+  scrollbar-width: none;
+}
+
+.sidebar-navigation::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-group {
-  margin-bottom: 23px;
+  margin-bottom: 18px;
 }
 
 .sidebar-group-title {
-  color: #8292AA;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1.2px;
+  margin: 0 0 6px;
   padding: 0 10px;
-  margin-bottom: 10px;
+  color: #6f6f73;
+  font-size: 10px;
+  font-weight: 500;
 }
 
 .sidebar-link {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 11px 12px;
-  margin-bottom: 4px;
-  color: #B5C1D1;
+  gap: 11px;
+  padding: 10px 10px;
+  margin-bottom: 2px;
+  color: #b4b4b8;
   font-size: 12px;
   font-weight: 500;
-  border-radius: 8px;
-  transition: all 0.2s ease;
+  text-decoration: none;
+  border-radius: 10px;
+  transition: background 0.15s, color 0.15s;
 }
 
 .sidebar-link:hover {
-  background: rgba(255,255,255,0.07);
-  color: #FFFFFF;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.07);
 }
 
 .sidebar-link.active {
-  background: #3478F6;
-  color: #FFFFFF;
+  color: #0a0a0a;
+  background: #fff;
   font-weight: 600;
 }
 
-.sidebar-footer {
-  padding: 17px 20px;
-  border-top: 1px solid rgba(255,255,255,0.08);
+.sidebar-link:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
 }
 
-.sidebar-version {
+.sidebar-link-label {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-count {
+  min-width: 22px;
+  padding: 2px 7px;
+  color: #d6d6d8;
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.sidebar-link.active .sidebar-count {
+  color: #0a0a0a;
+  background: #ececea;
+}
+
+/* ---------- Pied : année scolaire ---------- */
+.sidebar-footer {
+  padding-top: 12px;
+}
+
+.sidebar-year {
   display: flex;
   align-items: center;
-  gap: 9px;
-  color: #8292AA;
+  justify-content: space-between;
+  width: 100%;
+  padding: 12px 14px;
+  color: #fff;
+  background: #161617;
+  border: none;
+  border-radius: 12px;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-year:hover {
+  background: #1d1d1f;
+}
+
+.sidebar-year:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 2px;
+}
+
+.sidebar-year-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.sidebar-year small {
+  color: #7d7d80;
   font-size: 10px;
 }
 
-.version-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #22C58B;
+.sidebar-year strong {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
+.sidebar-year svg {
+  color: #7d7d80;
+}
+
+/* ---------- Mobile ---------- */
 .sidebar-overlay {
   display: none;
 }
@@ -163,7 +183,7 @@
     display: block;
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.45);
+    background: rgba(0, 0, 0, 0.45);
     z-index: 99;
   }
 }

@@ -27,6 +27,12 @@ export class AcademicYearsController {
     return this.academicYearsService.findCurrent();
   }
 
+  @Get()
+  @Roles(Role.ADMINISTRATEUR)
+  findAll() {
+    return this.academicYearsService.findAll();
+  }
+
   @Post()
   @Roles(Role.ADMINISTRATEUR)
   create(@Body() dto: CreateAcademicYearDto) {

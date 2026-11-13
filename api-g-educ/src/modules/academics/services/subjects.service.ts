@@ -137,4 +137,21 @@ export class SubjectsService {
       this.handlePrismaError(error);
     }
   }
+
+
+async findAll() {
+  return this.prisma.subject.findMany({
+    select: {
+      id: true,
+      name: true,
+      slug: true,
+      isActive: true,
+      createdAt: true,
+    },
+    orderBy: {
+      name: 'asc',
+    },
+  });
+}
+
 }

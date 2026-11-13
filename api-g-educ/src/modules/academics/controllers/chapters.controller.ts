@@ -31,6 +31,12 @@ export class ChaptersController {
     private readonly chaptersService: ChaptersService,
   ) {}
 
+  @Get('chapters')
+  @Roles('ADMINISTRATEUR')
+  findAll() {
+    return this.chaptersService.findAll();
+  }
+
   @Post('class-subjects/:classSubjectId/chapters')
   @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
   create(

@@ -6,6 +6,28 @@ import { ReorderChaptersDto } from '../dto/reorder-chapters.dto';
 export declare class ChaptersController {
     private readonly chaptersService;
     constructor(chaptersService: ChaptersService);
+    findAll(): Promise<{
+        id: string;
+        createdAt: Date;
+        position: number;
+        classId: string;
+        classSubjectId: string;
+        status: import("../../../generated/prisma/enums").ContentStatus;
+        updatedAt: Date;
+        title: string;
+        description: string | null;
+        version: number;
+        publishedAt: Date | null;
+        classSubject: {
+            class: {
+                label: string;
+                code: string;
+            };
+            subject: {
+                name: string;
+            };
+        };
+    }[]>;
     create(user: AuthenticatedUser, classSubjectId: string, dto: CreateChapterDto): Promise<{
         id: string;
         createdAt: Date;

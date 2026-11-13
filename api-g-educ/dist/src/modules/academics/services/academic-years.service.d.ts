@@ -13,6 +13,14 @@ export declare class AcademicYearsService {
         isCurrent: boolean;
         createdAt: Date;
     }>;
+    findAll(): Promise<{
+        id: string;
+        label: string;
+        startDate: Date;
+        endDate: Date;
+        isCurrent: boolean;
+        createdAt: Date;
+    }[]>;
     create(dto: CreateAcademicYearDto): Promise<{
         id: string;
         label: string;

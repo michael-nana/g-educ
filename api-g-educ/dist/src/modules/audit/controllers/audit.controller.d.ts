@@ -6,6 +6,12 @@ export declare class AuditController {
     findAll(filters: AuditQueryDto): Promise<{
         data: {
             id: string;
+            user: {
+                phone: string;
+                studentProfile: {
+                    displayName: string;
+                } | null;
+            } | null;
             createdAt: Date;
             userId: string | null;
             role: import("../../../generated/prisma/enums").Role | null;

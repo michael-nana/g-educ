@@ -47,6 +47,14 @@ export class AssessmentsController {
     );
   }
 
+  @Get('chapters/:chapterId/assessments')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  findForManagement(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('chapterId', ParseUUIDPipe) chapterId: string,
+  ) {
+    return this.assessmentsService.findForManagement(user, chapterId);
+  }
 
 @Get('assessments')
 @Roles('ELEVE')

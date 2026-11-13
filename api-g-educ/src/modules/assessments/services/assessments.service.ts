@@ -187,6 +187,46 @@ export class AssessmentsService {
     });
   }
 
+  async findForManagement(
+    user: { id: string; role: string },
+    chapterId: string,
+  ) {
+    if (!['ADMINISTRATEUR', 'ENSEIGNANT'].includes(user.role)) {
+      throw new ForbiddenException(
+        'Vous n’êtes pas autorisé à consulter ces évaluations',
+      );
+    }
+
+    const chapter = await this.prisma.chapter.findUnique({
+      where: { id: chapterId },
+      select: { classSubjectId: true },
+    });
+
+    if (!chapter) {
+      throw new NotFoundException('Chapitre introuvable');
+    }
+
+    await this.teacherScope.assertCanManage(user, chapter.classSubjectId);
+
+    return this.prisma.assessment.findMany({
+      where: { chapterId },
+      include: {
+        questions: {
+          orderBy: { position: 'asc' },
+          include: {
+            options: {
+              orderBy: { position: 'asc' },
+            },
+          },
+        },
+        _count: {
+          select: { attempts: true },
+        },
+      },
+      orderBy: [{ position: 'asc' }, { createdAt: 'desc' }],
+    });
+  }
+
   
 async update(
   user: { id: string; role: string },
@@ -202,6 +242,10 @@ async update(
           classSubjectId: true,
           classId: true,
         },
+      },
+      questions: {
+        include: { options: true },
+        orderBy: { position: 'asc' },
       },
     },
   });
@@ -229,7 +273,8 @@ async update(
     dto.instructions === undefined &&
     dto.durationSeconds === undefined &&
     dto.passingPercent === undefined &&
-    dto.position === undefined
+    dto.position === undefined &&
+    dto.questions === undefined
   ) {
     throw new BadRequestException(
       'Aucune modification fournie',
@@ -240,6 +285,33 @@ async update(
     throw new BadRequestException(
       'Le titre de l’évaluation est obligatoire',
     );
+  }
+
+  for (const question of dto.questions ?? []) {
+    const correctCount = question.options.filter(
+      (option) => option.isCorrect,
+    ).length;
+
+    if (question.type === 'QCM_UNIQUE' && correctCount !== 1) {
+      throw new BadRequestException(
+        'Une question QCM_UNIQUE doit avoir exactement une bonne réponse',
+      );
+    }
+
+    if (question.type === 'QCM_MULTIPLE' && correctCount < 1) {
+      throw new BadRequestException(
+        'Une question QCM_MULTIPLE doit avoir au moins une bonne réponse',
+      );
+    }
+
+    if (
+      question.type === 'VRAI_FAUX' &&
+      (question.options.length !== 2 || correctCount !== 1)
+    ) {
+      throw new BadRequestException(
+        'Une question VRAI_FAUX doit avoir exactement deux options et une seule bonne réponse',
+      );
+    }
   }
 
   // 5. Préparer les modifications.
@@ -265,7 +337,42 @@ async update(
   return this.prisma.$transaction(async (tx) => {
     const updated = await tx.assessment.update({
       where: { id: assessmentId },
-      data,
+      data: {
+        ...data,
+        ...(dto.questions !== undefined && {
+          questions: {
+            deleteMany: {},
+            create: dto.questions.map((question, questionIndex) => ({
+              type: question.type,
+              statement: question.statement.trim(),
+              explanation: question.explanation?.trim() || null,
+              imageKey: question.imageKey ?? null,
+              points: question.points ?? 1,
+              position: question.position ?? questionIndex,
+              options: {
+                create: question.options.map((option, optionIndex) => ({
+                  label: option.label.trim(),
+                  isCorrect: option.isCorrect,
+                  position: option.position ?? optionIndex,
+                })),
+              },
+            })),
+          },
+        }),
+      },
+      include: {
+        questions: {
+          orderBy: { position: 'asc' },
+          include: {
+            options: {
+              orderBy: { position: 'asc' },
+            },
+          },
+        },
+        _count: {
+          select: { attempts: true },
+        },
+      },
     });
 
     await this.auditService.log(
@@ -280,6 +387,7 @@ async update(
           passingPercent: assessment.passingPercent,
           position: assessment.position,
           status: assessment.status,
+          questionCount: assessment.questions.length,
         },
         after: {
           title: updated.title,
@@ -288,6 +396,7 @@ async update(
           passingPercent: updated.passingPercent,
           position: updated.position,
           status: updated.status,
+          questionCount: updated.questions.length,
         },
       },
       tx,

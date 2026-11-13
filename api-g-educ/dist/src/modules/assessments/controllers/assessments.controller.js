@@ -32,6 +32,9 @@ let AssessmentsController = class AssessmentsController {
     createExercise(user, chapterId, dto) {
         return this.assessmentsService.create(user, chapterId, dto, 'EXERCICE');
     }
+    findForManagement(user, chapterId) {
+        return this.assessmentsService.findForManagement(user, chapterId);
+    }
     findPublishedForStudent(user, filters) {
         return this.assessmentsService.findPublishedForStudent(user, filters);
     }
@@ -71,6 +74,15 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, create_assessment_dto_1.CreateAssessmentDto]),
     __metadata("design:returntype", void 0)
 ], AssessmentsController.prototype, "createExercise", null);
+__decorate([
+    (0, common_1.Get)('chapters/:chapterId/assessments'),
+    (0, roles_decorator_1.Roles)('ADMINISTRATEUR', 'ENSEIGNANT'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('chapterId', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AssessmentsController.prototype, "findForManagement", null);
 __decorate([
     (0, common_1.Get)('assessments'),
     (0, roles_decorator_1.Roles)('ELEVE'),

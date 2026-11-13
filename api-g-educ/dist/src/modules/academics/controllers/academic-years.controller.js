@@ -28,6 +28,9 @@ let AcademicYearsController = class AcademicYearsController {
     findCurrent() {
         return this.academicYearsService.findCurrent();
     }
+    findAll() {
+        return this.academicYearsService.findAll();
+    }
     create(dto) {
         return this.academicYearsService.create(dto);
     }
@@ -39,6 +42,13 @@ __decorate([
     __metadata("design:paramtypes", []),
     __metadata("design:returntype", void 0)
 ], AcademicYearsController.prototype, "findCurrent", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMINISTRATEUR),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], AcademicYearsController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)(),
     (0, roles_decorator_1.Roles)(client_1.Role.ADMINISTRATEUR),

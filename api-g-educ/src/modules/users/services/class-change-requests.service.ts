@@ -126,6 +126,29 @@ export class ClassChangeRequestsService {
         reviewedById: true,
         reviewedAt: true,
         createdAt: true,
+        studentProfile: {
+          select: {
+            displayName: true,
+            schoolName: true,
+          },
+        },
+        academicYear: {
+          select: {
+            label: true,
+          },
+        },
+        fromClass: {
+          select: {
+            code: true,
+            label: true,
+          },
+        },
+        toClass: {
+          select: {
+            code: true,
+            label: true,
+          },
+        },
       },
     });
   }

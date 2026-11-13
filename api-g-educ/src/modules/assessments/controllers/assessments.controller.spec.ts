@@ -8,6 +8,7 @@ describe('AssessmentsController', () => {
 
   const assessmentsService = {
     create: jest.fn(),
+    findForManagement: jest.fn(),
     findPublishedForStudent: jest.fn(),
     findPublishedOneForStudent: jest.fn(),
     update: jest.fn(),
@@ -72,6 +73,21 @@ describe('AssessmentsController', () => {
       'chapter-1',
       dto,
       'QUIZ',
+    );
+  });
+
+  it('should delegate management listing to the service', async () => {
+    const user = { id: 'user-1', role: 'ADMINISTRATEUR' } as any;
+    const result = [{ id: 'assessment-1' }];
+    assessmentsService.findForManagement.mockResolvedValue(result);
+
+    await expect(
+      controller.findForManagement(user, 'chapter-1'),
+    ).resolves.toEqual(result);
+
+    expect(assessmentsService.findForManagement).toHaveBeenCalledWith(
+      user,
+      'chapter-1',
     );
   });
 

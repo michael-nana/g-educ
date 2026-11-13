@@ -45,6 +45,46 @@ export declare class AssessmentsController {
         instructions: string | null;
         passingPercent: number | null;
     }>;
+    findForManagement(user: AuthenticatedUser, chapterId: string): Promise<({
+        _count: {
+            attempts: number;
+        };
+        questions: ({
+            options: {
+                id: string;
+                label: string;
+                position: number;
+                questionId: string;
+                isCorrect: boolean;
+            }[];
+        } & {
+            id: string;
+            position: number;
+            type: import("../../../generated/prisma/enums").QuestionType;
+            assessmentId: string;
+            statement: string;
+            explanation: string | null;
+            imageKey: string | null;
+            points: number;
+        })[];
+    } & {
+        id: string;
+        createdAt: Date;
+        position: number;
+        classId: string;
+        status: import("../../../generated/prisma/enums").ContentStatus;
+        updatedAt: Date;
+        title: string;
+        version: number;
+        createdById: string;
+        publishedAt: Date | null;
+        chapterId: string;
+        durationSeconds: number | null;
+        publishedById: string | null;
+        kind: import("../../../generated/prisma/enums").AssessmentKind;
+        instructions: string | null;
+        passingPercent: number | null;
+    })[]>;
     findPublishedForStudent(user: AuthenticatedUser, filters: AssessmentFilterDto): Promise<{
         id: string;
         position: number;
@@ -145,6 +185,28 @@ export declare class AssessmentsController {
         passingPercent: number | null;
     }>;
     update(user: AuthenticatedUser, id: string, dto: UpdateAssessmentDto): Promise<{
+        _count: {
+            attempts: number;
+        };
+        questions: ({
+            options: {
+                id: string;
+                label: string;
+                position: number;
+                questionId: string;
+                isCorrect: boolean;
+            }[];
+        } & {
+            id: string;
+            position: number;
+            type: import("../../../generated/prisma/enums").QuestionType;
+            assessmentId: string;
+            statement: string;
+            explanation: string | null;
+            imageKey: string | null;
+            points: number;
+        })[];
+    } & {
         id: string;
         createdAt: Date;
         position: number;

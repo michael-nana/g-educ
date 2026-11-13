@@ -15,6 +15,21 @@ export declare class ClassChangeRequestsController {
         reviewedById: string | null;
         reviewedAt: Date | null;
         note: string | null;
+        academicYear: {
+            label: string;
+        };
+        studentProfile: {
+            displayName: string;
+            schoolName: string | null;
+        };
+        fromClass: {
+            label: string;
+            code: string;
+        };
+        toClass: {
+            label: string;
+            code: string;
+        };
     }[]>;
     approve(admin: AuthenticatedUser, id: string, dto: ReviewClassChangeRequestDto): Promise<{
         id: string;

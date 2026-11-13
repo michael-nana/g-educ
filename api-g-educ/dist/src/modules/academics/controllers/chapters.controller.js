@@ -27,6 +27,9 @@ let ChaptersController = class ChaptersController {
     constructor(chaptersService) {
         this.chaptersService = chaptersService;
     }
+    findAll() {
+        return this.chaptersService.findAll();
+    }
     create(user, classSubjectId, dto) {
         return this.chaptersService.create(user, classSubjectId, dto);
     }
@@ -47,6 +50,13 @@ let ChaptersController = class ChaptersController {
     }
 };
 exports.ChaptersController = ChaptersController;
+__decorate([
+    (0, common_1.Get)('chapters'),
+    (0, roles_decorator_1.Roles)('ADMINISTRATEUR'),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], ChaptersController.prototype, "findAll", null);
 __decorate([
     (0, common_1.Post)('class-subjects/:classSubjectId/chapters'),
     (0, roles_decorator_1.Roles)('ADMINISTRATEUR', 'ENSEIGNANT'),

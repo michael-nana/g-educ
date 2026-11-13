@@ -2,6 +2,7 @@
 import {
   Body,
   Controller,
+  Get,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -40,4 +41,12 @@ export class SubjectsController {
   ) {
     return this.subjectsService.update(id, dto);
   }
+
+
+@Get()
+@Roles(Role.ADMINISTRATEUR)
+findAll() {
+  return this.subjectsService.findAll();
+}
+
 }

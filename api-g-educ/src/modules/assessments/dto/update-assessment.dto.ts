@@ -5,7 +5,13 @@ import {
   Max,
   Min,
   MinLength,
+  IsArray,
+  ArrayMinSize,
+  ValidateNested,
 } from 'class-validator';
+import { Type } from 'class-transformer';
+
+import { CreateQuestionDto } from './create-question.dto';
 
 export class UpdateAssessmentDto {
   @IsOptional()
@@ -20,17 +26,24 @@ export class UpdateAssessmentDto {
   @IsOptional()
   @IsInt()
   @Min(1)
-  durationSeconds?: number;
+  durationSeconds?: number | null;
 
   @IsOptional()
   @IsInt()
   @Min(0)
   @Max(100)
-  passingPercent?: number;
+  passingPercent?: number | null;
 
   @IsOptional()
   @IsInt()
   @Min(0)
   @Max(100000)
   position?: number;
+
+  @IsOptional()
+  @IsArray()
+  @ArrayMinSize(1)
+  @ValidateNested({ each: true })
+  @Type(() => CreateQuestionDto)
+  questions?: CreateQuestionDto[];
 }

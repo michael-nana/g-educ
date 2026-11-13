@@ -20,4 +20,11 @@ export declare class SubjectsService {
         slug: string;
         isActive: boolean;
     }>;
+    findAll(): Promise<{
+        id: string;
+        createdAt: Date;
+        name: string;
+        slug: string;
+        isActive: boolean;
+    }[]>;
 }

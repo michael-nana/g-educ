@@ -40,6 +40,21 @@ let AcademicYearsService = class AcademicYearsService {
         }
         return academicYear;
     }
+    async findAll() {
+        return this.prisma.academicYear.findMany({
+            select: {
+                id: true,
+                label: true,
+                startDate: true,
+                endDate: true,
+                isCurrent: true,
+                createdAt: true,
+            },
+            orderBy: {
+                startDate: 'desc',
+            },
+        });
+    }
     async create(dto) {
         const startDate = new Date(dto.startDate);
         const endDate = new Date(dto.endDate);

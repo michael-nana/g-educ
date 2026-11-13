@@ -1,0 +1,87 @@
+.geduc-modal-backdrop {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  overflow-y: auto;
+  background: rgb(17 24 39 / 55%);
+}
+
+.geduc-modal {
+  width: min(100%, 620px);
+  max-height: min(90vh, 900px);
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 24px 70px rgb(15 23 42 / 25%);
+}
+
+.geduc-modal-header {
+  position: sticky;
+  z-index: 1;
+  top: 0;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.geduc-modal-header h2 {
+  margin: 0;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.geduc-modal-header p {
+  margin: 6px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.geduc-modal-close {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 0;
+  border-radius: 7px;
+  background: var(--background);
+  color: var(--text-muted);
+  font-size: 23px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.geduc-modal-close:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.geduc-modal-body {
+  padding: 22px;
+}
+
+@media (max-width: 600px) {
+  .geduc-modal-backdrop {
+    align-items: end;
+    padding: 10px;
+  }
+
+  .geduc-modal {
+    max-height: 92vh;
+    border-radius: 14px 14px 8px 8px;
+  }
+
+  .geduc-modal-header,
+  .geduc-modal-body {
+    padding: 17px;
+  }
+}

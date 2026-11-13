@@ -1,0 +1,67 @@
+.geduc-confirmation {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.geduc-confirmation-message {
+  margin: 0;
+  color: var(--text);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.geduc-confirmation-error {
+  padding: 11px 13px;
+  border-radius: 7px;
+  background: #fff0f0;
+  color: var(--danger);
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.geduc-confirmation-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 4px;
+}
+
+.geduc-confirmation-actions button {
+  padding: 10px 14px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.geduc-confirmation-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.geduc-confirmation-cancel {
+  background: var(--background);
+  color: var(--text);
+}
+
+.geduc-confirmation-submit {
+  background: var(--primary);
+  color: #fff;
+}
+
+.geduc-confirmation-danger {
+  background: var(--danger);
+}
+
+@media (max-width: 480px) {
+  .geduc-confirmation-actions {
+    flex-direction: column-reverse;
+  }
+
+  .geduc-confirmation-actions button {
+    width: 100%;
+  }
+}

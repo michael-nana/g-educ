@@ -1,0 +1,71 @@
+.events-page{--c-ink:var(--text,#111);--c-muted:var(--text-muted,#6b6b66);--c-line:var(--border,#e6e5df);--c-tile:#f1f1ec;display:flex;flex-direction:column;gap:18px;color:var(--c-ink)}
+.events-header{display:flex;align-items:flex-start;justify-content:space-between;gap:16px}
+.events-header h1{margin:0;font-size:28px;letter-spacing:-.02em}
+.events-header p{margin:6px 0 0;color:var(--c-muted);font-size:13px}
+.events-header-actions{display:flex;gap:9px;flex-wrap:wrap}
+.events-button{padding:10px 18px;border:1px solid var(--c-line);border-radius:999px;background:#fff;color:var(--c-ink);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
+.events-button-primary{background:#0d0d0d;border-color:#0d0d0d;color:#fff}
+.events-button:disabled{opacity:.5;cursor:not-allowed}
+.events-archive-button{color:var(--danger,#c0392b)}
+.events-button:focus-visible,.cal-nav:focus-visible,.day-chip:focus-visible,.calendar-day-hit:focus-visible,.segmented button:focus-visible{outline:2px solid #0d0d0d;outline-offset:2px}
+.events-message{padding:12px 14px;border-radius:12px;font-size:13px}
+.events-error{background:#fdeeea;color:var(--danger,#c0392b)}
+.events-success{background:#eaf6ef;color:var(--success,#1a7f4b)}
+
+.events-layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+.events-card{background:#fff;border-radius:18px;padding:20px}
+
+/* calendrier */
+.calendar-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:16px}
+.calendar-title{display:flex;align-items:center;gap:8px}
+.calendar-title h2{margin:0;font-size:20px;letter-spacing:-.01em}
+.calendar-title em{font-family:Georgia,serif;font-weight:400;color:var(--c-muted)}
+.cal-nav{width:28px;height:28px;border:0;border-radius:50%;background:var(--c-tile);font-size:16px;line-height:1;cursor:pointer}
+.calendar-legend{display:flex;align-items:center;gap:14px;font-size:12px}
+.calendar-legend select{padding:7px 12px;border:1px solid var(--c-line);border-radius:999px;background:#fff;font:inherit;font-size:12px;max-width:180px}
+.calendar-legend span{display:inline-flex;align-items:center;gap:6px}
+.dot{width:10px;height:10px;border-radius:50%;border:1.5px solid #0d0d0d;display:inline-block}
+.dot-examen{background:#0d0d0d}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:7px}
+.calendar-weekday{padding:0 4px 4px;color:#8f8f88;font-size:11px}
+.calendar-blank{min-height:78px}
+.calendar-day{position:relative;display:flex;flex-direction:column;gap:4px;min-height:78px;padding:8px;border:2px solid transparent;border-radius:12px;background:var(--c-tile)}
+.calendar-day.is-selected{border-color:#0d0d0d}
+.calendar-day-hit{position:absolute;inset:0;border:0;border-radius:10px;background:transparent;cursor:pointer;text-align:left;padding:8px}
+.day-number{font-size:12px;font-weight:700}
+.calendar-day.is-today .day-number{color:#e0612b}
+.day-chip,.day-more{position:relative;z-index:1;display:block;width:100%;padding:3px 6px;border-radius:6px;border:1.5px solid #0d0d0d;font:inherit;font-size:10.5px;font-weight:600;text-align:left;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:pointer}
+.calendar-day>.day-chip:first-of-type{margin-top:18px}
+.day-chip-examen{background:#0d0d0d;color:#fff}
+.day-chip-devoir{background:#fff;color:#0d0d0d}
+.day-chip-autre{background:#dcdcd5;border-color:#dcdcd5;color:var(--c-ink)}
+.day-more{border:0;color:var(--c-muted);padding:0 2px;width:auto}
+
+/* panneau */
+.event-panel{display:flex;flex-direction:column;gap:16px}
+.panel-title{width:100%;box-sizing:border-box;padding:0;border:0;background:none;color:var(--c-ink);font:inherit;font-size:16px;font-weight:700;outline:none;border-bottom:1px solid transparent}
+.panel-title:focus{border-bottom-color:var(--c-line)}
+.panel-sub{margin:4px 0 0;color:var(--c-muted);font-size:12px}
+.panel-block{display:flex;flex-direction:column;gap:8px}
+.panel-label{color:var(--c-muted);font-size:12px}
+.panel-label em{font-style:normal;opacity:.7}
+.panel-input{width:100%;box-sizing:border-box;padding:10px 14px;border:1px solid var(--c-line);border-radius:14px;background:#fff;font:inherit;font-size:12.5px}
+.panel-event-title{font-size:15px;font-weight:600}
+textarea.panel-input{resize:vertical}
+.segmented{display:flex;padding:3px;border-radius:999px;background:var(--c-tile)}
+.segmented button{flex:1;padding:8px 12px;border:0;border-radius:999px;background:transparent;color:var(--c-muted);font:inherit;font-size:12px;font-weight:600;cursor:pointer}
+.segmented button.is-active{background:#0d0d0d;color:#fff}
+.class-chips{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.class-chip{display:inline-flex;align-items:center;gap:6px;padding:5px 11px;border-radius:999px;background:#0d0d0d;color:#fff;font-size:11.5px;font-weight:600}
+.class-chip button{border:0;background:none;color:#fff;cursor:pointer;padding:0;font-size:13px;line-height:1}
+.class-add{padding:5px 10px;border:1px solid var(--c-line);border-radius:999px;background:#fff;font:inherit;font-size:11.5px;font-weight:600;max-width:140px}
+.datetime-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr;gap:8px}
+.tile{display:flex;flex-direction:column;gap:3px;padding:10px 12px;border-radius:12px;background:var(--c-tile);font-size:11px;color:var(--c-muted)}
+.tile input{width:100%;min-width:0;padding:0;border:0;background:transparent;color:var(--c-ink);font:inherit;font-size:13px;font-weight:700;outline:none}
+.reminder-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:9px 14px;border:1px solid var(--c-line);border-radius:999px;font-size:12.5px}
+.reminder-row input{width:36px;height:20px;accent-color:#0d0d0d}
+.panel-actions{display:flex;justify-content:space-between;gap:10px;margin-top:4px}
+.panel-actions .events-button{flex:1}
+
+@media (max-width:1000px){.events-layout{grid-template-columns:1fr}}
+@media (max-width:650px){.events-header{flex-direction:column}.events-header-actions{width:100%}.events-header-actions .events-button{flex:1}.calendar-grid{gap:4px}.calendar-day{padding:5px;min-height:62px}.day-chip{font-size:9.5px}.datetime-grid{grid-template-columns:1fr 1fr}}

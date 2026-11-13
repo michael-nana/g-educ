@@ -8,6 +8,7 @@ describe('AcademicYearsController', () => {
 
   const academicYearsServiceMock = {
     findCurrent: jest.fn(),
+    findAll: jest.fn(),
     create: jest.fn(),
   };
 

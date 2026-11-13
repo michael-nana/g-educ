@@ -22,6 +22,44 @@ export class ChaptersService {
     private readonly teacherScope: TeacherScopeService,
   ) {}
 
+  async findAll() {
+    return this.prisma.chapter.findMany({
+      orderBy: [
+        { classSubject: { class: { position: 'asc' } } },
+        { classSubject: { subject: { name: 'asc' } } },
+        { position: 'asc' },
+      ],
+      select: {
+        id: true,
+        classSubjectId: true,
+        classId: true,
+        title: true,
+        description: true,
+        position: true,
+        status: true,
+        version: true,
+        publishedAt: true,
+        createdAt: true,
+        updatedAt: true,
+        classSubject: {
+          select: {
+            class: {
+              select: {
+                code: true,
+                label: true,
+              },
+            },
+            subject: {
+              select: {
+                name: true,
+              },
+            },
+          },
+        },
+      },
+    });
+  }
+
   async create(
     user: { id: string; role: string },
     classSubjectId: string,

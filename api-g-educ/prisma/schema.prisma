@@ -792,6 +792,7 @@ model ActivityLog {
 
   @@unique([userId, clientId])
   @@index([userId, activityDate])
+  @@index([activityDate, userId])
   @@map("activity_logs")
 }
 

@@ -22,6 +22,7 @@ import { CoursesModule } from './modules/courses/courses.module';
 import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { EventsModule } from './modules/events/events.module';
 import { PlannerModule } from './modules/planner/planner.module';
+import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
   imports: [
@@ -55,6 +56,7 @@ import { PlannerModule } from './modules/planner/planner.module';
     AssessmentsModule,
     EventsModule,
     PlannerModule,
+    DashboardModule,
   ],
   controllers: [AppController],
   providers: [

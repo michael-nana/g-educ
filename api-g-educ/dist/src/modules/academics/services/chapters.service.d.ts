@@ -9,6 +9,28 @@ export declare class ChaptersService {
     private readonly auditService;
     private readonly teacherScope;
     constructor(prisma: PrismaService, auditService: AuditService, teacherScope: TeacherScopeService);
+    findAll(): Promise<{
+        id: string;
+        createdAt: Date;
+        position: number;
+        classId: string;
+        classSubjectId: string;
+        status: import("../../../generated/prisma/enums").ContentStatus;
+        updatedAt: Date;
+        title: string;
+        description: string | null;
+        version: number;
+        publishedAt: Date | null;
+        classSubject: {
+            class: {
+                label: string;
+                code: string;
+            };
+            subject: {
+                name: string;
+            };
+        };
+    }[]>;
     create(user: {
         id: string;
         role: string;

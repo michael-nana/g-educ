@@ -11,12 +11,15 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.UpdateAssessmentDto = void 0;
 const class_validator_1 = require("class-validator");
+const class_transformer_1 = require("class-transformer");
+const create_question_dto_1 = require("./create-question.dto");
 class UpdateAssessmentDto {
     title;
     instructions;
     durationSeconds;
     passingPercent;
     position;
+    questions;
 }
 exports.UpdateAssessmentDto = UpdateAssessmentDto;
 __decorate([
@@ -34,14 +37,14 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(1),
-    __metadata("design:type", Number)
+    __metadata("design:type", Object)
 ], UpdateAssessmentDto.prototype, "durationSeconds", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsInt)(),
     (0, class_validator_1.Min)(0),
     (0, class_validator_1.Max)(100),
-    __metadata("design:type", Number)
+    __metadata("design:type", Object)
 ], UpdateAssessmentDto.prototype, "passingPercent", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
@@ -50,4 +53,12 @@ __decorate([
     (0, class_validator_1.Max)(100000),
     __metadata("design:type", Number)
 ], UpdateAssessmentDto.prototype, "position", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.ArrayMinSize)(1),
+    (0, class_validator_1.ValidateNested)({ each: true }),
+    (0, class_transformer_1.Type)(() => create_question_dto_1.CreateQuestionDto),
+    __metadata("design:type", Array)
+], UpdateAssessmentDto.prototype, "questions", void 0);
 //# sourceMappingURL=update-assessment.dto.js.map

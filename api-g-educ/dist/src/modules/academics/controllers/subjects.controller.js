@@ -32,6 +32,9 @@ let SubjectsController = class SubjectsController {
     update(id, dto) {
         return this.subjectsService.update(id, dto);
     }
+    findAll() {
+        return this.subjectsService.findAll();
+    }
 };
 exports.SubjectsController = SubjectsController;
 __decorate([
@@ -51,6 +54,13 @@ __decorate([
     __metadata("design:paramtypes", [String, update_subject_dto_1.UpdateSubjectDto]),
     __metadata("design:returntype", void 0)
 ], SubjectsController.prototype, "update", null);
+__decorate([
+    (0, common_1.Get)(),
+    (0, roles_decorator_1.Roles)(client_1.Role.ADMINISTRATEUR),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", []),
+    __metadata("design:returntype", void 0)
+], SubjectsController.prototype, "findAll", null);
 exports.SubjectsController = SubjectsController = __decorate([
     (0, common_1.Controller)('subjects'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard, roles_guard_1.RolesGuard),

@@ -44,6 +44,18 @@ let AuditService = class AuditService {
                 },
                 skip: (page - 1) * limit,
                 take: limit,
+                include: {
+                    user: {
+                        select: {
+                            phone: true,
+                            studentProfile: {
+                                select: {
+                                    displayName: true,
+                                },
+                            },
+                        },
+                    },
+                },
             }),
             this.prisma.auditLog.count({ where }),
         ]);

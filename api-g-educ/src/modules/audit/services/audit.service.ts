@@ -21,64 +21,73 @@ export class AuditService {
   ) {}
 
   async findAll(filters: AuditQueryDto) {
-  const {
-    userId,
-    entityType,
-    entityId,
-    action,
-    from,
-    to,
-    page = 1,
-    limit = 20,
-  } = filters;
+    const {
+      userId,
+      entityType,
+      entityId,
+      action,
+      from,
+      to,
+      page = 1,
+      limit = 20,
+    } = filters;
 
-  const where: Prisma.AuditLogWhereInput = {
-    ...(userId && { userId }),
-    ...(entityType && { entityType }),
-    ...(entityId && { entityId }),
-    ...(action && { action }),
-    ...(from || to
-      ? {
-          createdAt: {
-            ...(from && { gte: new Date(from) }),
-            ...(to && { lte: new Date(to) }),
+    const where: Prisma.AuditLogWhereInput = {
+      ...(userId && { userId }),
+      ...(entityType && { entityType }),
+      ...(entityId && { entityId }),
+      ...(action && { action }),
+      ...(from || to
+        ? {
+            createdAt: {
+              ...(from && { gte: new Date(from) }),
+              ...(to && { lte: new Date(to) }),
+            },
+          }
+        : {}),
+    };
+
+    const [data, total] = await this.prisma.$transaction([
+      this.prisma.auditLog.findMany({
+        where,
+        orderBy: {
+          createdAt: 'desc',
+        },
+        skip: (page - 1) * limit,
+        take: limit,
+        include: {
+          user: {
+            select: {
+              phone: true,
+              studentProfile: {
+                select: {
+                  displayName: true,
+                },
+              },
+            },
           },
-        }
-      : {}),
-  };
+        },
+      }),
+      this.prisma.auditLog.count({ where }),
+    ]);
 
-  const [data, total] = await this.prisma.$transaction([
-    this.prisma.auditLog.findMany({
-      where,
-      orderBy: {
-        createdAt: 'desc',
+    const serializedData = data.map((log) => ({
+      ...log,
+      id: log.id.toString(),
+    }));
+
+    return {
+      data: serializedData,
+      meta: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
       },
-      skip: (page - 1) * limit,
-      take: limit,
-    }),
-    this.prisma.auditLog.count({ where }),
-  ]);
+    };
+  }
 
-const serializedData = data.map((log) => ({
-  ...log,
-  id: log.id.toString(),
-}));
-
-return {
-  data: serializedData,
-  meta: {
-    total,
-    page,
-    limit,
-    totalPages: Math.ceil(total / limit),
-  },
-};
-}
-
-  async log(
-    input: CreateAuditLogInput,
-    tx?: Prisma.TransactionClient,
-  ) {
+  async log(input: CreateAuditLogInput, tx?: Prisma.TransactionClient) {
     const client = tx ?? this.prisma;
 
     return client.auditLog.create({
