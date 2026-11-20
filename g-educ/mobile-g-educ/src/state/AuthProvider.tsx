@@ -1,0 +1,13 @@
+﻿import {createContext,useContext,useEffect,useMemo,useState,type PropsWithChildren} from 'react';
+import NetInfo from '@react-native-community/netinfo';
+import {ApiError} from '../services/api';
+import {offlineSync} from '../services/offline-sync';
+import {authService} from '../services/auth.service';import {tokenStorage} from '../services/storage';import {studentService} from '../services/student.service';import type {User} from '../services/types';
+type AuthValue={user:User|null;loading:boolean;signIn(phone:string,password:string):Promise<void>;signOut():Promise<void>;refreshUser():Promise<void>};
+const AuthContext=createContext<AuthValue|null>(null);
+function normalizeUser(user:User):User{return {...user,displayName:user.studentProfile?.displayName??user.displayName??'',schoolName:user.studentProfile?.schoolName??user.schoolName,classId:user.studentProfile?.classId??user.classId}}
+export function AuthProvider({children}:PropsWithChildren){const [user,setUser]=useState<User|null>(null);const [loading,setLoading]=useState(true);const refreshUser=async()=>{const fresh=normalizeUser(await studentService.me());await tokenStorage.saveCachedUser(fresh);setUser(fresh)};
+useEffect(()=>{let active=true;(async()=>{try{if(!await tokenStorage.getAccess())return;const network=await NetInfo.fetch();if(network.isConnected===false||network.isInternetReachable===false){const cached=await tokenStorage.getCachedUser<User>();if(active&&cached)setUser(normalizeUser(cached));return}const fresh=normalizeUser(await studentService.me());await tokenStorage.saveCachedUser(fresh);if(active)setUser(fresh)}catch(error){if(error instanceof ApiError&&(error.status===401||error.status===403)){await tokenStorage.clear()}else{const cached=await tokenStorage.getCachedUser<User>();if(active&&cached)setUser(normalizeUser(cached))}}finally{if(active)setLoading(false)}})();return()=>{active=false}},[]);
+const userId=user?.id;useEffect(()=>{if(!userId)return undefined;return offlineSync.start(userId)},[userId]);
+const value=useMemo<AuthValue>(()=>({user,loading,async signIn(phone,password){const session=await authService.login(phone,password);await authService.saveSession(session);const fresh=normalizeUser(session.user);await tokenStorage.saveCachedUser(fresh);setUser(fresh)},async signOut(){try{await authService.logout()}finally{setUser(null)}},refreshUser}),[user,loading]);return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>}
+export function useAuth(){const context=useContext(AuthContext);if(!context)throw new Error('useAuth doit être utilisé dans AuthProvider');return context}

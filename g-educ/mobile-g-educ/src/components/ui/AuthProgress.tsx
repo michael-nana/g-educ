@@ -1,0 +1,6 @@
+﻿import { StyleSheet, Text, View } from 'react-native';
+import { colors } from '../../theme/colors';
+export function AuthProgress({ step, total = 3, label }: { step: number; total?: number; label: string }) {
+  return <View style={styles.wrap}><View style={styles.labels}><Text style={styles.label}>{label}</Text><Text style={styles.counter}>{String(step).padStart(2, '0')} / {String(total).padStart(2, '0')}</Text></View><View style={styles.track}>{Array.from({ length: total }, (_, index) => <View key={index} style={[styles.segment, index < step && styles.segmentActive]} />)}</View></View>;
+}
+const styles = StyleSheet.create({ wrap: { backgroundColor: colors.surface, borderRadius: 17, borderWidth: 1, borderColor: colors.border, padding: 15, marginBottom: 18 }, labels: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }, label: { color: colors.ink, fontSize: 11, fontWeight: '700' }, counter: { color: colors.textSecondary, fontSize: 9, fontWeight: '700', letterSpacing: 0.7 }, track: { flexDirection: 'row', gap: 5 }, segment: { height: 4, backgroundColor: colors.soft, borderRadius: 9, flex: 1 }, segmentActive: { backgroundColor: colors.ink } });

@@ -1,0 +1,6 @@
+﻿import * as SecureStore from 'expo-secure-store';
+const ACCESS='geduc.access-token';const REFRESH='geduc.refresh-token';const DEVICE='geduc.device-id';
+const PUSH='geduc.push-token';
+const CACHED_USER='geduc.cached-user';
+function uuid(){return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==='x'?r:(r&0x3|0x8)).toString(16)})}
+export const tokenStorage={getAccess:()=>SecureStore.getItemAsync(ACCESS),getRefresh:()=>SecureStore.getItemAsync(REFRESH),getPush:()=>SecureStore.getItemAsync(PUSH),savePush:(token:string)=>SecureStore.setItemAsync(PUSH,token),clearPush:()=>SecureStore.deleteItemAsync(PUSH),getCachedUser:async<T>()=>{const value=await SecureStore.getItemAsync(CACHED_USER);if(!value)return null;try{return JSON.parse(value) as T}catch{return null}},saveCachedUser:(user:unknown)=>SecureStore.setItemAsync(CACHED_USER,JSON.stringify(user)),async getDeviceId(){let value=await SecureStore.getItemAsync(DEVICE);if(!value){value=uuid();await SecureStore.setItemAsync(DEVICE,value)}return value},async save(accessToken:string,refreshToken:string){await Promise.all([SecureStore.setItemAsync(ACCESS,accessToken),SecureStore.setItemAsync(REFRESH,refreshToken)])},async clear(){await Promise.all([SecureStore.deleteItemAsync(ACCESS),SecureStore.deleteItemAsync(REFRESH),SecureStore.deleteItemAsync(CACHED_USER)])}};

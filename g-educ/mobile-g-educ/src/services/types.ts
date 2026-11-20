@@ -1,0 +1,22 @@
+﻿export type Id = string;
+export interface User { id: Id; phone?: string; displayName: string; role: 'ELEVE' | 'ENSEIGNANT' | 'ADMINISTRATEUR'; classId?: Id | null; schoolName?: string | null; studentProfile?: { displayName: string; schoolName?: string | null; classId?: Id | null } | null; status?: string; }
+export interface SessionResponse { user: User; accessToken: string; refreshToken: string; expiresIn?: number; }
+export interface ClassItem { id: Id; label: string; code?: string; level?: string; series?: string | null; }
+export interface Subject { id: Id; name: string; slug?: string; description?: string | null; }
+export interface ClassSubject { id: Id; coefficient: number; subject: Subject; progressPercent?: number; completedLessons?: number; totalLessons?: number; totalChapters?: number; trackedLessons?: number; }
+export interface Chapter { id: Id; title: string; description?: string | null; order?: number; position?: number; classSubject?: { id: Id; subject: Subject }; }
+export interface Lesson { id: Id; chapterId?: Id; title: string; description?: string | null; type?: string; position?: number; durationMinutes?: number; durationSeconds?: number | null; contentMarkdown?: string | null; videoUrl?: string | null; favorite?: boolean; chapter?: Chapter & { classSubjectId?: Id }; assets?: Array<{ id: Id; downloadUrl: string; kind?: string; name?: string; mimeType?: string }>; myProgress?: { progressPercent: number; lastPositionSeconds?: number | null; completedAt?: string | null } | null; }
+export interface ProgressLesson { progressPercent: number; lastPositionSeconds?: number | null; completedAt?: string | null; lesson: Lesson & { chapter: Chapter & { classSubjectId: Id } }; }
+export interface ProgressChapter { id: Id; title: string; position: number; progressPercent: number; totalLessons: number; completedLessons: number; trackedLessons: number; assessmentCount: number; averageScore: number | null; attemptCount: number; quizAverageScore: number | null; quizAttemptCount: number; }
+export interface ProgressSubject { classSubjectId: Id; subject: Subject; coefficient: number | null; progressPercent: number; totalLessons: number; completedLessons: number; trackedLessons: number; totalChapters: number; averageScore: number | null; attemptCount: number; quizAverageScore: number | null; quizAttemptCount: number; chapters: ProgressChapter[]; }
+export interface ProgressOverview { summary: { progressPercent: number; totalLessons: number; completedLessons: number; totalSubjects: number; totalChapters: number; quizAverageScore: number | null; quizAttemptCount: number; }; subjects: ProgressSubject[]; }
+export interface AttemptSummary { id: Id; assessmentId: Id; score: number; maxScore: number; submittedAt: string; assessment: { id: Id; title: string; kind?: string; chapter?: { id: Id; title: string } | null }; }
+export interface AttemptDetail extends AttemptSummary { assessment: AttemptSummary['assessment'] & { chapter?: { id: Id; title: string }; passingPercent?: number | null }; answers: Array<{ id: Id; isCorrect: boolean; pointsAwarded?: number; responseText?: string | null; question: { id: Id; statement: string; explanation?: string | null; options: Array<{ id: Id; label: string; isCorrect: boolean }> }; options: Array<{ option: { id: Id; label: string } }> }>; }
+export interface Assessment { id: Id; title: string; description?: string | null; instructions?: string | null; kind?: 'EXERCICE' | 'QUIZ'; exerciseFormat?: 'TEXTE' | 'PDF'; exercisePdf?: { name: string; downloadUrl: string } | null; type?: string; durationSeconds?: number | null; durationMinutes?: number; passingPercent?: number | null; chapter?: { id: Id; title: string }; questions?: Array<{ id: Id; statement: string; type: string; options?: Array<{ id: Id; label: string }> }>; }
+export interface StudySession { id: Id; title: string; startsAt: string; endsAt: string; subjectId?: Id | null; status?: string; completedAt?: string | null; }
+export interface SchoolEvent { id: Id; title: string; startsAt: string; endsAt?: string; type?: string; }
+export interface ActivityCalendar { from: string; to: string; activeDays: string[]; totalActiveDays: number; }
+export interface NotificationItem { id: Id; type: string; title: string; body: string; data?: Record<string, unknown> | null; sentAt?: string | null; readAt?: string | null; createdAt: string; }
+export interface NotificationList { data: NotificationItem[]; unreadCount: number; pagination: { page: number; limit: number; total: number; totalPages: number }; }
+
+
