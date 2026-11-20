@@ -18,6 +18,7 @@ class CreateLessonDto {
     contentMarkdown;
     position;
     durationSeconds;
+    videoUrl;
 }
 exports.CreateLessonDto = CreateLessonDto;
 __decorate([
@@ -47,4 +48,10 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], CreateLessonDto.prototype, "durationSeconds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)({ protocols: ['https'], require_protocol: true }),
+    (0, class_validator_1.MaxLength)(2048),
+    __metadata("design:type", String)
+], CreateLessonDto.prototype, "videoUrl", void 0);
 //# sourceMappingURL=create-lesson.dto.js.map

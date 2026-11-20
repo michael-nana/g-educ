@@ -12,9 +12,12 @@ const auth_module_1 = require("../auth/auth.module");
 const audit_module_1 = require("../audit/audit.module");
 const academics_module_1 = require("../academics/academics.module");
 const gamification_module_1 = require("../gamification/gamification.module");
+const assessments_module_1 = require("../assessments/assessments.module");
 const upload_module_1 = require("../../common/upload/upload.module");
 const lessons_controller_1 = require("./controllers/lessons.controller");
+const annal_import_controller_1 = require("./controllers/annal-import.controller");
 const lessons_service_1 = require("./services/lessons.service");
+const annal_import_service_1 = require("./services/annal-import.service");
 let CoursesModule = class CoursesModule {
 };
 exports.CoursesModule = CoursesModule;
@@ -25,13 +28,16 @@ exports.CoursesModule = CoursesModule = __decorate([
             audit_module_1.AuditModule,
             academics_module_1.AcademicsModule,
             gamification_module_1.GamificationModule,
+            assessments_module_1.AssessmentsModule,
             upload_module_1.UploadModule,
         ],
         controllers: [
             lessons_controller_1.LessonsController,
+            annal_import_controller_1.AnnalImportController,
         ],
         providers: [
             lessons_service_1.LessonsService,
+            annal_import_service_1.AnnalImportService,
         ],
         exports: [
             lessons_service_1.LessonsService,

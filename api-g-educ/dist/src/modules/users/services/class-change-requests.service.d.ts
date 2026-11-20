@@ -28,12 +28,12 @@ export declare class ClassChangeRequestsService {
         reviewedById: string | null;
         reviewedAt: Date | null;
         note: string | null;
-        academicYear: {
-            label: string;
-        };
         studentProfile: {
             displayName: string;
             schoolName: string | null;
+        };
+        academicYear: {
+            label: string;
         };
         fromClass: {
             label: string;

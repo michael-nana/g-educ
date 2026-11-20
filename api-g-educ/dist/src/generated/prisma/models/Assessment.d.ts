@@ -26,6 +26,11 @@ export type AssessmentMinAggregateOutputType = {
     chapterId: string | null;
     classId: string | null;
     kind: $Enums.AssessmentKind | null;
+    exerciseFormat: $Enums.ExerciseFormat | null;
+    exercisePdfKey: string | null;
+    exercisePdfName: string | null;
+    correctionPdfKey: string | null;
+    correctionPdfName: string | null;
     title: string | null;
     instructions: string | null;
     durationSeconds: number | null;
@@ -44,6 +49,11 @@ export type AssessmentMaxAggregateOutputType = {
     chapterId: string | null;
     classId: string | null;
     kind: $Enums.AssessmentKind | null;
+    exerciseFormat: $Enums.ExerciseFormat | null;
+    exercisePdfKey: string | null;
+    exercisePdfName: string | null;
+    correctionPdfKey: string | null;
+    correctionPdfName: string | null;
     title: string | null;
     instructions: string | null;
     durationSeconds: number | null;
@@ -62,6 +72,11 @@ export type AssessmentCountAggregateOutputType = {
     chapterId: number;
     classId: number;
     kind: number;
+    exerciseFormat: number;
+    exercisePdfKey: number;
+    exercisePdfName: number;
+    correctionPdfKey: number;
+    correctionPdfName: number;
     title: number;
     instructions: number;
     durationSeconds: number;
@@ -93,6 +108,11 @@ export type AssessmentMinAggregateInputType = {
     chapterId?: true;
     classId?: true;
     kind?: true;
+    exerciseFormat?: true;
+    exercisePdfKey?: true;
+    exercisePdfName?: true;
+    correctionPdfKey?: true;
+    correctionPdfName?: true;
     title?: true;
     instructions?: true;
     durationSeconds?: true;
@@ -111,6 +131,11 @@ export type AssessmentMaxAggregateInputType = {
     chapterId?: true;
     classId?: true;
     kind?: true;
+    exerciseFormat?: true;
+    exercisePdfKey?: true;
+    exercisePdfName?: true;
+    correctionPdfKey?: true;
+    correctionPdfName?: true;
     title?: true;
     instructions?: true;
     durationSeconds?: true;
@@ -129,6 +154,11 @@ export type AssessmentCountAggregateInputType = {
     chapterId?: true;
     classId?: true;
     kind?: true;
+    exerciseFormat?: true;
+    exercisePdfKey?: true;
+    exercisePdfName?: true;
+    correctionPdfKey?: true;
+    correctionPdfName?: true;
     title?: true;
     instructions?: true;
     durationSeconds?: true;
@@ -176,6 +206,11 @@ export type AssessmentGroupByOutputType = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat: $Enums.ExerciseFormat;
+    exercisePdfKey: string | null;
+    exercisePdfName: string | null;
+    correctionPdfKey: string | null;
+    correctionPdfName: string | null;
     title: string;
     instructions: string | null;
     durationSeconds: number | null;
@@ -205,6 +240,11 @@ export type AssessmentWhereInput = {
     chapterId?: Prisma.UuidFilter<"Assessment"> | string;
     classId?: Prisma.UuidFilter<"Assessment"> | string;
     kind?: Prisma.EnumAssessmentKindFilter<"Assessment"> | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFilter<"Assessment"> | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    exercisePdfName?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    correctionPdfKey?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    correctionPdfName?: Prisma.StringNullableFilter<"Assessment"> | string | null;
     title?: Prisma.StringFilter<"Assessment"> | string;
     instructions?: Prisma.StringNullableFilter<"Assessment"> | string | null;
     durationSeconds?: Prisma.IntNullableFilter<"Assessment"> | number | null;
@@ -228,6 +268,11 @@ export type AssessmentOrderByWithRelationInput = {
     chapterId?: Prisma.SortOrder;
     classId?: Prisma.SortOrder;
     kind?: Prisma.SortOrder;
+    exerciseFormat?: Prisma.SortOrder;
+    exercisePdfKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+    exercisePdfName?: Prisma.SortOrderInput | Prisma.SortOrder;
+    correctionPdfKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+    correctionPdfName?: Prisma.SortOrderInput | Prisma.SortOrder;
     title?: Prisma.SortOrder;
     instructions?: Prisma.SortOrderInput | Prisma.SortOrder;
     durationSeconds?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -254,6 +299,11 @@ export type AssessmentWhereUniqueInput = Prisma.AtLeast<{
     chapterId?: Prisma.UuidFilter<"Assessment"> | string;
     classId?: Prisma.UuidFilter<"Assessment"> | string;
     kind?: Prisma.EnumAssessmentKindFilter<"Assessment"> | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFilter<"Assessment"> | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    exercisePdfName?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    correctionPdfKey?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    correctionPdfName?: Prisma.StringNullableFilter<"Assessment"> | string | null;
     title?: Prisma.StringFilter<"Assessment"> | string;
     instructions?: Prisma.StringNullableFilter<"Assessment"> | string | null;
     durationSeconds?: Prisma.IntNullableFilter<"Assessment"> | number | null;
@@ -277,6 +327,11 @@ export type AssessmentOrderByWithAggregationInput = {
     chapterId?: Prisma.SortOrder;
     classId?: Prisma.SortOrder;
     kind?: Prisma.SortOrder;
+    exerciseFormat?: Prisma.SortOrder;
+    exercisePdfKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+    exercisePdfName?: Prisma.SortOrderInput | Prisma.SortOrder;
+    correctionPdfKey?: Prisma.SortOrderInput | Prisma.SortOrder;
+    correctionPdfName?: Prisma.SortOrderInput | Prisma.SortOrder;
     title?: Prisma.SortOrder;
     instructions?: Prisma.SortOrderInput | Prisma.SortOrder;
     durationSeconds?: Prisma.SortOrderInput | Prisma.SortOrder;
@@ -303,6 +358,11 @@ export type AssessmentScalarWhereWithAggregatesInput = {
     chapterId?: Prisma.UuidWithAggregatesFilter<"Assessment"> | string;
     classId?: Prisma.UuidWithAggregatesFilter<"Assessment"> | string;
     kind?: Prisma.EnumAssessmentKindWithAggregatesFilter<"Assessment"> | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatWithAggregatesFilter<"Assessment"> | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.StringNullableWithAggregatesFilter<"Assessment"> | string | null;
+    exercisePdfName?: Prisma.StringNullableWithAggregatesFilter<"Assessment"> | string | null;
+    correctionPdfKey?: Prisma.StringNullableWithAggregatesFilter<"Assessment"> | string | null;
+    correctionPdfName?: Prisma.StringNullableWithAggregatesFilter<"Assessment"> | string | null;
     title?: Prisma.StringWithAggregatesFilter<"Assessment"> | string;
     instructions?: Prisma.StringNullableWithAggregatesFilter<"Assessment"> | string | null;
     durationSeconds?: Prisma.IntNullableWithAggregatesFilter<"Assessment"> | number | null;
@@ -319,6 +379,11 @@ export type AssessmentScalarWhereWithAggregatesInput = {
 export type AssessmentCreateInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -340,6 +405,11 @@ export type AssessmentUncheckedCreateInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -358,6 +428,11 @@ export type AssessmentUncheckedCreateInput = {
 export type AssessmentUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -379,6 +454,11 @@ export type AssessmentUncheckedUpdateInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -399,6 +479,11 @@ export type AssessmentCreateManyInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -415,6 +500,11 @@ export type AssessmentCreateManyInput = {
 export type AssessmentUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -431,6 +521,11 @@ export type AssessmentUncheckedUpdateManyInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -457,6 +552,11 @@ export type AssessmentCountOrderByAggregateInput = {
     chapterId?: Prisma.SortOrder;
     classId?: Prisma.SortOrder;
     kind?: Prisma.SortOrder;
+    exerciseFormat?: Prisma.SortOrder;
+    exercisePdfKey?: Prisma.SortOrder;
+    exercisePdfName?: Prisma.SortOrder;
+    correctionPdfKey?: Prisma.SortOrder;
+    correctionPdfName?: Prisma.SortOrder;
     title?: Prisma.SortOrder;
     instructions?: Prisma.SortOrder;
     durationSeconds?: Prisma.SortOrder;
@@ -481,6 +581,11 @@ export type AssessmentMaxOrderByAggregateInput = {
     chapterId?: Prisma.SortOrder;
     classId?: Prisma.SortOrder;
     kind?: Prisma.SortOrder;
+    exerciseFormat?: Prisma.SortOrder;
+    exercisePdfKey?: Prisma.SortOrder;
+    exercisePdfName?: Prisma.SortOrder;
+    correctionPdfKey?: Prisma.SortOrder;
+    correctionPdfName?: Prisma.SortOrder;
     title?: Prisma.SortOrder;
     instructions?: Prisma.SortOrder;
     durationSeconds?: Prisma.SortOrder;
@@ -499,6 +604,11 @@ export type AssessmentMinOrderByAggregateInput = {
     chapterId?: Prisma.SortOrder;
     classId?: Prisma.SortOrder;
     kind?: Prisma.SortOrder;
+    exerciseFormat?: Prisma.SortOrder;
+    exercisePdfKey?: Prisma.SortOrder;
+    exercisePdfName?: Prisma.SortOrder;
+    correctionPdfKey?: Prisma.SortOrder;
+    correctionPdfName?: Prisma.SortOrder;
     title?: Prisma.SortOrder;
     instructions?: Prisma.SortOrder;
     durationSeconds?: Prisma.SortOrder;
@@ -639,6 +749,9 @@ export type AssessmentUncheckedUpdateManyWithoutChapterNestedInput = {
 export type EnumAssessmentKindFieldUpdateOperationsInput = {
     set?: $Enums.AssessmentKind;
 };
+export type EnumExerciseFormatFieldUpdateOperationsInput = {
+    set?: $Enums.ExerciseFormat;
+};
 export type AssessmentCreateNestedOneWithoutQuestionsInput = {
     create?: Prisma.XOR<Prisma.AssessmentCreateWithoutQuestionsInput, Prisma.AssessmentUncheckedCreateWithoutQuestionsInput>;
     connectOrCreate?: Prisma.AssessmentCreateOrConnectWithoutQuestionsInput;
@@ -666,6 +779,11 @@ export type AssessmentUpdateOneRequiredWithoutAttemptsNestedInput = {
 export type AssessmentCreateWithoutCreatedByInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -686,6 +804,11 @@ export type AssessmentUncheckedCreateWithoutCreatedByInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -711,6 +834,11 @@ export type AssessmentCreateManyCreatedByInputEnvelope = {
 export type AssessmentCreateWithoutPublishedByInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -731,6 +859,11 @@ export type AssessmentUncheckedCreateWithoutPublishedByInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -774,6 +907,11 @@ export type AssessmentScalarWhereInput = {
     chapterId?: Prisma.UuidFilter<"Assessment"> | string;
     classId?: Prisma.UuidFilter<"Assessment"> | string;
     kind?: Prisma.EnumAssessmentKindFilter<"Assessment"> | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFilter<"Assessment"> | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    exercisePdfName?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    correctionPdfKey?: Prisma.StringNullableFilter<"Assessment"> | string | null;
+    correctionPdfName?: Prisma.StringNullableFilter<"Assessment"> | string | null;
     title?: Prisma.StringFilter<"Assessment"> | string;
     instructions?: Prisma.StringNullableFilter<"Assessment"> | string | null;
     durationSeconds?: Prisma.IntNullableFilter<"Assessment"> | number | null;
@@ -803,6 +941,11 @@ export type AssessmentUpdateManyWithWhereWithoutPublishedByInput = {
 export type AssessmentCreateWithoutChapterInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -821,6 +964,11 @@ export type AssessmentCreateWithoutChapterInput = {
 export type AssessmentUncheckedCreateWithoutChapterInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -860,6 +1008,11 @@ export type AssessmentUpdateManyWithWhereWithoutChapterInput = {
 export type AssessmentCreateWithoutQuestionsInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -880,6 +1033,11 @@ export type AssessmentUncheckedCreateWithoutQuestionsInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -910,6 +1068,11 @@ export type AssessmentUpdateToOneWithWhereWithoutQuestionsInput = {
 export type AssessmentUpdateWithoutQuestionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -930,6 +1093,11 @@ export type AssessmentUncheckedUpdateWithoutQuestionsInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -947,6 +1115,11 @@ export type AssessmentUncheckedUpdateWithoutQuestionsInput = {
 export type AssessmentCreateWithoutAttemptsInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -967,6 +1140,11 @@ export type AssessmentUncheckedCreateWithoutAttemptsInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -997,6 +1175,11 @@ export type AssessmentUpdateToOneWithWhereWithoutAttemptsInput = {
 export type AssessmentUpdateWithoutAttemptsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1017,6 +1200,11 @@ export type AssessmentUncheckedUpdateWithoutAttemptsInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1036,6 +1224,11 @@ export type AssessmentCreateManyCreatedByInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -1053,6 +1246,11 @@ export type AssessmentCreateManyPublishedByInput = {
     chapterId: string;
     classId: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -1068,6 +1266,11 @@ export type AssessmentCreateManyPublishedByInput = {
 export type AssessmentUpdateWithoutCreatedByInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1088,6 +1291,11 @@ export type AssessmentUncheckedUpdateWithoutCreatedByInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1107,6 +1315,11 @@ export type AssessmentUncheckedUpdateManyWithoutCreatedByInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1122,6 +1335,11 @@ export type AssessmentUncheckedUpdateManyWithoutCreatedByInput = {
 export type AssessmentUpdateWithoutPublishedByInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1142,6 +1360,11 @@ export type AssessmentUncheckedUpdateWithoutPublishedByInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1161,6 +1384,11 @@ export type AssessmentUncheckedUpdateManyWithoutPublishedByInput = {
     chapterId?: Prisma.StringFieldUpdateOperationsInput | string;
     classId?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1176,6 +1404,11 @@ export type AssessmentUncheckedUpdateManyWithoutPublishedByInput = {
 export type AssessmentCreateManyChapterInput = {
     id?: string;
     kind: $Enums.AssessmentKind;
+    exerciseFormat?: $Enums.ExerciseFormat;
+    exercisePdfKey?: string | null;
+    exercisePdfName?: string | null;
+    correctionPdfKey?: string | null;
+    correctionPdfName?: string | null;
     title: string;
     instructions?: string | null;
     durationSeconds?: number | null;
@@ -1192,6 +1425,11 @@ export type AssessmentCreateManyChapterInput = {
 export type AssessmentUpdateWithoutChapterInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1210,6 +1448,11 @@ export type AssessmentUpdateWithoutChapterInput = {
 export type AssessmentUncheckedUpdateWithoutChapterInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1228,6 +1471,11 @@ export type AssessmentUncheckedUpdateWithoutChapterInput = {
 export type AssessmentUncheckedUpdateManyWithoutChapterInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     kind?: Prisma.EnumAssessmentKindFieldUpdateOperationsInput | $Enums.AssessmentKind;
+    exerciseFormat?: Prisma.EnumExerciseFormatFieldUpdateOperationsInput | $Enums.ExerciseFormat;
+    exercisePdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    exercisePdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfKey?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
+    correctionPdfName?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     title?: Prisma.StringFieldUpdateOperationsInput | string;
     instructions?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null;
@@ -1263,6 +1511,11 @@ export type AssessmentSelect<ExtArgs extends runtime.Types.Extensions.InternalAr
     chapterId?: boolean;
     classId?: boolean;
     kind?: boolean;
+    exerciseFormat?: boolean;
+    exercisePdfKey?: boolean;
+    exercisePdfName?: boolean;
+    correctionPdfKey?: boolean;
+    correctionPdfName?: boolean;
     title?: boolean;
     instructions?: boolean;
     durationSeconds?: boolean;
@@ -1287,6 +1540,11 @@ export type AssessmentSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Ex
     chapterId?: boolean;
     classId?: boolean;
     kind?: boolean;
+    exerciseFormat?: boolean;
+    exercisePdfKey?: boolean;
+    exercisePdfName?: boolean;
+    correctionPdfKey?: boolean;
+    correctionPdfName?: boolean;
     title?: boolean;
     instructions?: boolean;
     durationSeconds?: boolean;
@@ -1308,6 +1566,11 @@ export type AssessmentSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Ex
     chapterId?: boolean;
     classId?: boolean;
     kind?: boolean;
+    exerciseFormat?: boolean;
+    exercisePdfKey?: boolean;
+    exercisePdfName?: boolean;
+    correctionPdfKey?: boolean;
+    correctionPdfName?: boolean;
     title?: boolean;
     instructions?: boolean;
     durationSeconds?: boolean;
@@ -1329,6 +1592,11 @@ export type AssessmentSelectScalar = {
     chapterId?: boolean;
     classId?: boolean;
     kind?: boolean;
+    exerciseFormat?: boolean;
+    exercisePdfKey?: boolean;
+    exercisePdfName?: boolean;
+    correctionPdfKey?: boolean;
+    correctionPdfName?: boolean;
     title?: boolean;
     instructions?: boolean;
     durationSeconds?: boolean;
@@ -1342,7 +1610,7 @@ export type AssessmentSelectScalar = {
     createdAt?: boolean;
     updatedAt?: boolean;
 };
-export type AssessmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chapterId" | "classId" | "kind" | "title" | "instructions" | "durationSeconds" | "passingPercent" | "position" | "status" | "version" | "createdById" | "publishedById" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["assessment"]>;
+export type AssessmentOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chapterId" | "classId" | "kind" | "exerciseFormat" | "exercisePdfKey" | "exercisePdfName" | "correctionPdfKey" | "correctionPdfName" | "title" | "instructions" | "durationSeconds" | "passingPercent" | "position" | "status" | "version" | "createdById" | "publishedById" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["assessment"]>;
 export type AssessmentInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>;
     createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>;
@@ -1375,6 +1643,11 @@ export type $AssessmentPayload<ExtArgs extends runtime.Types.Extensions.Internal
         chapterId: string;
         classId: string;
         kind: $Enums.AssessmentKind;
+        exerciseFormat: $Enums.ExerciseFormat;
+        exercisePdfKey: string | null;
+        exercisePdfName: string | null;
+        correctionPdfKey: string | null;
+        correctionPdfName: string | null;
         title: string;
         instructions: string | null;
         durationSeconds: number | null;
@@ -1453,6 +1726,11 @@ export interface AssessmentFieldRefs {
     readonly chapterId: Prisma.FieldRef<"Assessment", 'String'>;
     readonly classId: Prisma.FieldRef<"Assessment", 'String'>;
     readonly kind: Prisma.FieldRef<"Assessment", 'AssessmentKind'>;
+    readonly exerciseFormat: Prisma.FieldRef<"Assessment", 'ExerciseFormat'>;
+    readonly exercisePdfKey: Prisma.FieldRef<"Assessment", 'String'>;
+    readonly exercisePdfName: Prisma.FieldRef<"Assessment", 'String'>;
+    readonly correctionPdfKey: Prisma.FieldRef<"Assessment", 'String'>;
+    readonly correctionPdfName: Prisma.FieldRef<"Assessment", 'String'>;
     readonly title: Prisma.FieldRef<"Assessment", 'String'>;
     readonly instructions: Prisma.FieldRef<"Assessment", 'String'>;
     readonly durationSeconds: Prisma.FieldRef<"Assessment", 'Int'>;

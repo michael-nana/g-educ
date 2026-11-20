@@ -1,4 +1,4 @@
-services:
+﻿services:
   db:
     image: postgres:16
     restart: unless-stopped
@@ -10,9 +10,76 @@ services:
       - "5433:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U app -d eleves_bf"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
   redis:
     image: redis:7
     ports:
       - "6379:6379"
+
+  api:
+    build:
+      context: ./api-g-educ
+      dockerfile: Dockerfile
+    command: ["sh", "-c", "npx prisma generate && npx prisma migrate deploy && npm run start:dev"]
+    environment:
+      NODE_ENV: development
+      PORT: 3000
+      DATABASE_URL: postgresql://app:app_password@db:5432/eleves_bf?schema=public
+      JWT_ACCESS_SECRET: local-development-access-secret-change-me
+      JWT_REFRESH_SECRET: local-development-refresh-secret-change-me
+      OTP_VERIFICATION_SECRET: local-development-otp-secret-change-me
+      S3_ENDPOINT: http://s3-not-used.invalid
+      S3_REGION: us-east-1
+      S3_BUCKET: geduc
+      S3_ACCESS_KEY_ID: local-development
+      S3_SECRET_ACCESS_KEY: local-development-secret
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173,http://localhost:8081
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./api-g-educ:/app
+      - api_node_modules:/app/node_modules
+    depends_on:
+      db:
+        condition: service_healthy
+
+  admin:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    command: ["sh", "-c", "npm ci && npm run dev -- --host 0.0.0.0"]
+    environment:
+      VITE_API_URL: http://localhost:3000/api/v1
+      CHOKIDAR_USEPOLLING: "true"
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./g-educ/admin-g-educ:/app
+      - admin_node_modules:/app/node_modules
+    depends_on:
+      - api
+
+  mobile:
+    image: node:22-bookworm-slim
+    working_dir: /app
+    command: ["sh", "-c", "npm ci && npx expo start --host lan --port 8081"]
+    environment:
+      EXPO_PUBLIC_API_URL: ${EXPO_PUBLIC_API_URL:-http://localhost:3000/api/v1}
+      EXPO_PACKAGER_PROXY_URL: ${EXPO_PACKAGER_PROXY_URL:-}
+    ports:
+      - "8081:8081"
+    volumes:
+      - ./g-educ/mobile-g-educ:/app
+      - mobile_node_modules:/app/node_modules
+    depends_on:
+      - api
+
 volumes:
   pgdata:
+  api_node_modules:
+  admin_node_modules:
+  mobile_node_modules:

@@ -1,4 +1,5 @@
 export type AssessmentKind = 'EXERCICE' | 'QUIZ';
+export type ExerciseFormat = 'TEXTE' | 'PDF';
 export type AssessmentStatus = 'BROUILLON' | 'PUBLIE' | 'ARCHIVE';
 export type QuestionType = 'QCM_UNIQUE' | 'QCM_MULTIPLE' | 'VRAI_FAUX';
 
@@ -25,6 +26,9 @@ export interface Assessment {
   chapterId: string;
   classId: string;
   kind: AssessmentKind;
+  exerciseFormat: ExerciseFormat;
+  exercisePdfName: string | null;
+  correctionPdfName: string | null;
   title: string;
   instructions: string | null;
   durationSeconds: number | null;
@@ -58,15 +62,17 @@ export interface CreateAssessmentQuestionDto {
 }
 
 export interface CreateAssessmentDto {
+  exerciseFormat?: ExerciseFormat;
   title: string;
   instructions?: string;
   durationSeconds?: number;
   passingPercent?: number;
   position?: number;
-  questions: CreateAssessmentQuestionDto[];
+  questions?: CreateAssessmentQuestionDto[];
 }
 
 export interface UpdateAssessmentDto {
+  exerciseFormat?: ExerciseFormat;
   title?: string;
   instructions?: string;
   durationSeconds?: number | null;

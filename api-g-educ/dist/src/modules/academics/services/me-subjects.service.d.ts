@@ -3,6 +3,11 @@ export declare class MeSubjectsService {
     private readonly prisma;
     constructor(prisma: PrismaService);
     findMySubjects(userId: string): Promise<{
+        progressPercent: number;
+        completedLessons: number;
+        totalLessons: number;
+        totalChapters: number;
+        trackedLessons: number;
         id: string;
         position: number;
         coefficient: number | null;

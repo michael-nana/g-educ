@@ -5,6 +5,8 @@ import {
   ForbiddenException,
   NotFoundException,
 } from '@nestjs/common';
+import { randomUUID } from 'crypto';
+import { fileTypeFromBuffer } from 'file-type';
 
 import { PrismaService } from '../../../prisma/prisma.service';
 import { AssessmentFilterDto } from '../dto/assessment-filter.dto';
@@ -18,6 +20,7 @@ import { AttemptFilterDto } from '../dto/attempt-filter.dto';
 import { SubmitAttemptDto } from '../dto/submit-attempt.dto';
 
 import { GamificationService } from '../../gamification/services/gamification.service';
+import { UploadService } from '../../../common/upload/upload.service';
 import type { CreateAssessmentDto } from '../dto/create-assessment.dto';
 
 @Injectable()
@@ -27,8 +30,86 @@ export class AssessmentsService {
     private readonly auditService: AuditService,
     private readonly teacherScope: TeacherScopeService,
       private readonly gamificationService: GamificationService,
+    private readonly uploadService: UploadService,
 
   ) {}
+
+  async uploadExerciseFile(
+    user: { id: string; role: string },
+    assessmentId: string,
+    fileType: string,
+    file: Express.Multer.File,
+  ) {
+    if (!['EXERCISE', 'CORRECTION'].includes(fileType)) {
+      throw new BadRequestException('Type de fichier invalide');
+    }
+    if (!file?.buffer?.length) {
+      throw new BadRequestException('Sélectionnez un fichier PDF');
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      throw new BadRequestException('Le PDF ne doit pas dépasser 20 Mo');
+    }
+    const detected = await fileTypeFromBuffer(file.buffer);
+    if (detected?.mime !== 'application/pdf') {
+      throw new BadRequestException('Le fichier sélectionné n’est pas un PDF valide');
+    }
+
+    const assessment = await this.prisma.assessment.findUnique({
+      where: { id: assessmentId },
+      include: { chapter: { select: { classSubjectId: true } } },
+    });
+    if (!assessment) throw new NotFoundException('Évaluation introuvable');
+    await this.teacherScope.assertCanManage(user, assessment.chapter.classSubjectId);
+    if (assessment.kind !== 'EXERCICE' || assessment.exerciseFormat !== 'PDF') {
+      throw new BadRequestException('Ces fichiers sont réservés aux exercices PDF');
+    }
+    if (assessment.status !== 'BROUILLON') {
+      throw new BadRequestException('Seuls les brouillons peuvent recevoir des fichiers');
+    }
+
+    const key = `assessments/${assessment.classId}/${assessment.id}/${fileType.toLowerCase()}/${randomUUID()}.pdf`;
+    const name = file.originalname.replace(/[\\/:*?"<>|]/g, '_').trim().slice(0, 200) || 'document.pdf';
+    await this.uploadService.uploadFile({ storageKey: key, buffer: file.buffer, mimeType: 'application/pdf' });
+    const oldKey = fileType === 'EXERCISE' ? assessment.exercisePdfKey : assessment.correctionPdfKey;
+    try {
+      await this.prisma.assessment.update({
+        where: { id: assessmentId },
+        data: fileType === 'EXERCISE'
+          ? { exercisePdfKey: key, exercisePdfName: name }
+          : { correctionPdfKey: key, correctionPdfName: name },
+      });
+    } catch (error) {
+      await this.uploadService.deleteFile(key).catch(() => undefined);
+      throw error;
+    }
+    if (oldKey) await this.uploadService.deleteFile(oldKey).catch(() => undefined);
+    return { fileType, name };
+  }
+
+  async getExerciseCorrection(
+    user: { id: string; role: string; classId: string | null },
+    assessmentId: string,
+  ) {
+    if (user.role !== 'ELEVE' || !user.classId) {
+      throw new ForbiddenException('Cette correction est réservée aux élèves');
+    }
+    const assessment = await this.prisma.assessment.findFirst({
+      where: {
+        id: assessmentId,
+        classId: user.classId,
+        kind: 'EXERCICE',
+        exerciseFormat: 'PDF',
+        status: 'PUBLIE',
+        chapter: { status: 'PUBLIE' },
+      },
+      select: { correctionPdfKey: true, correctionPdfName: true },
+    });
+    if (!assessment?.correctionPdfKey) throw new NotFoundException('Correction introuvable');
+    return {
+      name: assessment.correctionPdfName ?? 'Correction.pdf',
+      downloadUrl: await this.uploadService.createSignedDownloadUrl(assessment.correctionPdfKey, 300),
+    };
+  }
 
   async create(
     user: { id: string; role: string },
@@ -69,6 +150,11 @@ export class AssessmentsService {
 
     // 3. Valider le titre.
     const title = dto.title.trim();
+
+    if (kind === 'QUIZ' && dto.exerciseFormat === 'PDF') {
+      throw new BadRequestException('Les quiz doivent conserver leur format questions');
+    }
+    const exerciseFormat = kind === 'EXERCICE' ? dto.exerciseFormat ?? 'TEXTE' : 'TEXTE';
 
     if (!title) {
       throw new BadRequestException(
@@ -112,6 +198,7 @@ export class AssessmentsService {
           chapterId,
           classId: chapter.classId,
           kind,
+          exerciseFormat,
           title,
           instructions: dto.instructions?.trim() || null,
           durationSeconds: dto.durationSeconds ?? null,
@@ -274,6 +361,7 @@ async update(
     dto.durationSeconds === undefined &&
     dto.passingPercent === undefined &&
     dto.position === undefined &&
+    dto.exerciseFormat === undefined &&
     dto.questions === undefined
   ) {
     throw new BadRequestException(
@@ -285,6 +373,10 @@ async update(
     throw new BadRequestException(
       'Le titre de l’évaluation est obligatoire',
     );
+  }
+
+  if (assessment.kind === 'QUIZ' && dto.exerciseFormat === 'PDF') {
+    throw new BadRequestException('Les quiz doivent conserver leur format questions');
   }
 
   for (const question of dto.questions ?? []) {
@@ -330,6 +422,9 @@ async update(
     }),
     ...(dto.position !== undefined && {
       position: dto.position,
+    }),
+    ...(dto.exerciseFormat !== undefined && {
+      exerciseFormat: dto.exerciseFormat,
     }),
   };
 
@@ -435,6 +530,7 @@ async findPublishedForStudent(
     select: {
       id: true,
       kind: true,
+      exerciseFormat: true,
       title: true,
       instructions: true,
       durationSeconds: true,
@@ -500,8 +596,11 @@ async findPublishedOneForStudent(
     select: {
       id: true,
       kind: true,
+      exerciseFormat: true,
       title: true,
       instructions: true,
+      exercisePdfKey: true,
+      exercisePdfName: true,
       durationSeconds: true,
       passingPercent: true,
       position: true,
@@ -555,7 +654,20 @@ async findPublishedOneForStudent(
     throw new NotFoundException('Évaluation introuvable');
   }
 
-  return assessment;
+  const { exercisePdfKey, ...safeAssessment } = assessment;
+  return {
+    ...safeAssessment,
+    exercisePdf: exercisePdfKey && assessment.exerciseFormat === 'PDF'
+      ? {
+          name: assessment.exercisePdfName ?? 'Exercice.pdf',
+          downloadUrl: await this.uploadService.createSignedDownloadUrl(exercisePdfKey, 300),
+        }
+      : null,
+    questions: assessment.questions.map((question) => ({
+      ...question,
+      options: assessment.kind === 'EXERCICE' ? [] : question.options,
+    })),
+  };
 }
 
 
@@ -607,7 +719,11 @@ async publish(
     );
   }
 
-  if (assessment.questions.length === 0) {
+  if (assessment.kind === 'EXERCICE' && assessment.exerciseFormat === 'PDF') {
+    if (!assessment.exercisePdfKey || !assessment.correctionPdfKey) {
+      throw new BadRequestException('Ajoutez le PDF de l’exercice et son PDF de correction avant publication');
+    }
+  } else if (assessment.questions.length === 0) {
     throw new BadRequestException(
       'Une évaluation doit contenir au moins une question',
     );
@@ -904,7 +1020,7 @@ if (
   const submittedAnswers = new Map(
     dto.answers.map((answer) => [
       answer.questionId,
-      answer.optionIds,
+      { optionIds: answer.optionIds, responseText: answer.responseText?.trim() ?? '' },
     ]),
   );
 
@@ -930,8 +1046,9 @@ if (
   );
 
   const correctedAnswers = assessment.questions.map((question) => {
-    const selectedOptionIds =
-      submittedAnswers.get(question.id) ?? [];
+    const submitted = submittedAnswers.get(question.id);
+    const selectedOptionIds = submitted?.optionIds ?? [];
+    const responseText = submitted?.responseText ?? '';
 
     const availableOptionIds = new Set(
       question.options.map((option) => option.id),
@@ -956,9 +1073,13 @@ if (
     const selectedSet = new Set(selectedOptionIds);
     const correctSet = new Set(correctOptionIds);
 
-    const isCorrect =
-      selectedSet.size === correctSet.size &&
-      [...correctSet].every((id) => selectedSet.has(id));
+    const isCorrect = assessment.kind === 'EXERCICE'
+      ? responseText.trim().toLocaleLowerCase() ===
+        (question.options.find((option) => option.isCorrect)?.label ?? '')
+          .trim()
+          .toLocaleLowerCase()
+      : selectedSet.size === correctSet.size &&
+        [...correctSet].every((id) => selectedSet.has(id));
 
     const pointsAwarded = isCorrect ? question.points : 0;
 
@@ -967,6 +1088,7 @@ if (
     return {
       questionId: question.id,
       selectedOptionIds,
+      responseText,
       isCorrect,
       pointsAwarded,
     };
@@ -1005,6 +1127,7 @@ const durationSeconds = Math.floor(
             questionId: answer.questionId,
             isCorrect: answer.isCorrect,
             pointsAwarded: answer.pointsAwarded,
+            responseText: answer.responseText || null,
             answeredAt: submittedAt,
             options: {
               create: answer.selectedOptionIds.map((optionId) => ({
@@ -1117,6 +1240,12 @@ async findMyAttempts(
           title: true,
           kind: true,
           passingPercent: true,
+          chapter: {
+            select: {
+              id: true,
+              title: true,
+            },
+          },
         },
       },
     },
@@ -1173,6 +1302,7 @@ async findMyAttemptById(
           id: true,
           isCorrect: true,
           pointsAwarded: true,
+          responseText: true,
           answeredAt: true,
           question: {
             select: {

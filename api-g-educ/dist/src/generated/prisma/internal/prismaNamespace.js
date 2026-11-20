@@ -232,6 +232,7 @@ exports.LessonScalarFieldEnum = {
     title: 'title',
     type: 'type',
     contentMarkdown: 'contentMarkdown',
+    videoUrl: 'videoUrl',
     durationSeconds: 'durationSeconds',
     position: 'position',
     status: 'status',
@@ -273,6 +274,11 @@ exports.AssessmentScalarFieldEnum = {
     chapterId: 'chapterId',
     classId: 'classId',
     kind: 'kind',
+    exerciseFormat: 'exerciseFormat',
+    exercisePdfKey: 'exercisePdfKey',
+    exercisePdfName: 'exercisePdfName',
+    correctionPdfKey: 'correctionPdfKey',
+    correctionPdfName: 'correctionPdfName',
     title: 'title',
     instructions: 'instructions',
     durationSeconds: 'durationSeconds',
@@ -323,6 +329,7 @@ exports.AttemptAnswerScalarFieldEnum = {
     questionId: 'questionId',
     isCorrect: 'isCorrect',
     pointsAwarded: 'pointsAwarded',
+    responseText: 'responseText',
     answeredAt: 'answeredAt'
 };
 exports.AttemptAnswerOptionScalarFieldEnum = {

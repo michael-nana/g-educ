@@ -1,5 +1,6 @@
 import {
   IsInt,
+  IsEnum,
   IsOptional,
   IsString,
   Max,
@@ -12,8 +13,13 @@ import {
 import { Type } from 'class-transformer';
 
 import { CreateQuestionDto } from './create-question.dto';
+import { ExerciseFormat } from '../../../generated/prisma/client';
 
 export class UpdateAssessmentDto {
+  @IsOptional()
+  @IsEnum(ExerciseFormat)
+  exerciseFormat?: ExerciseFormat;
+
   @IsOptional()
   @IsString()
   @MinLength(2)

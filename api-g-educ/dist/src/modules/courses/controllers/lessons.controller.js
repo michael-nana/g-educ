@@ -41,6 +41,9 @@ let LessonsController = class LessonsController {
     uploadAsset(user, id, file) {
         return this.lessonsService.uploadPdfAsset(user, id, file);
     }
+    uploadVideo(user, id, file) {
+        return this.lessonsService.uploadVideoAsset(user, id, file);
+    }
     deleteAsset(user, id, assetId) {
         return this.lessonsService.deleteAsset(user, id, assetId);
     }
@@ -109,6 +112,23 @@ __decorate([
     __metadata("design:paramtypes", [Object, String, Object]),
     __metadata("design:returntype", void 0)
 ], LessonsController.prototype, "uploadAsset", null);
+__decorate([
+    (0, common_1.Post)('lessons/:id/video'),
+    (0, roles_decorator_1.Roles)('ADMINISTRATEUR', 'ENSEIGNANT'),
+    (0, common_2.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.memoryStorage)(),
+        limits: {
+            fileSize: 100 * 1024 * 1024,
+            files: 1,
+        },
+    })),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(2, (0, common_2.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, Object]),
+    __metadata("design:returntype", void 0)
+], LessonsController.prototype, "uploadVideo", null);
 __decorate([
     (0, common_1.Delete)('lessons/:id/assets/:assetId'),
     (0, roles_decorator_1.Roles)('ADMINISTRATEUR', 'ENSEIGNANT'),

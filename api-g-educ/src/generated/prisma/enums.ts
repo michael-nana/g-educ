@@ -112,6 +112,14 @@ export const AssessmentKind = {
 export type AssessmentKind = (typeof AssessmentKind)[keyof typeof AssessmentKind]
 
 
+export const ExerciseFormat = {
+  TEXTE: 'TEXTE',
+  PDF: 'PDF'
+} as const
+
+export type ExerciseFormat = (typeof ExerciseFormat)[keyof typeof ExerciseFormat]
+
+
 export const QuestionType = {
   QCM_UNIQUE: 'QCM_UNIQUE',
   QCM_MULTIPLE: 'QCM_MULTIPLE',

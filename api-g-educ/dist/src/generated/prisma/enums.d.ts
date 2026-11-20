@@ -68,6 +68,11 @@ export declare const AssessmentKind: {
     readonly QUIZ: "QUIZ";
 };
 export type AssessmentKind = (typeof AssessmentKind)[keyof typeof AssessmentKind];
+export declare const ExerciseFormat: {
+    readonly TEXTE: "TEXTE";
+    readonly PDF: "PDF";
+};
+export type ExerciseFormat = (typeof ExerciseFormat)[keyof typeof ExerciseFormat];
 export declare const QuestionType: {
     readonly QCM_UNIQUE: "QCM_UNIQUE";
     readonly QCM_MULTIPLE: "QCM_MULTIPLE";

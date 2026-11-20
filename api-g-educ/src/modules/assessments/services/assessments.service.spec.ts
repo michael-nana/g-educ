@@ -12,6 +12,7 @@ import { PrismaService } from '../../../prisma/prisma.service';
 import { AuditService } from '../../audit/services/audit.service';
 import { TeacherScopeService } from '../../academics/services/teacher-scope.service';
 import { GamificationService } from '../../gamification/services/gamification.service';
+import { UploadService } from '../../../common/upload/upload.service';
 
 describe('AssessmentsService', () => {
   let service: AssessmentsService;
@@ -30,6 +31,7 @@ describe('AssessmentsService', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       findMany: jest.fn(),
+      update: jest.fn(),
     },
     $transaction: jest.fn(),
   };
@@ -43,6 +45,11 @@ describe('AssessmentsService', () => {
 
   const gamificationServiceMock = {
     recordActivity: jest.fn(),
+  };
+  const uploadServiceMock = {
+    uploadFile: jest.fn(),
+    createSignedDownloadUrl: jest.fn(),
+    deleteFile: jest.fn(),
   };
 
   const txMock = {
@@ -120,6 +127,10 @@ describe('AssessmentsService', () => {
         {
           provide: GamificationService,
           useValue: gamificationServiceMock,
+        },
+        {
+          provide: UploadService,
+          useValue: uploadServiceMock,
         },
       ],
     }).compile();

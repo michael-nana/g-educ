@@ -37,6 +37,7 @@ type CurrentUser = {
   canPublish: boolean;
 };
 const MAX_PDF_SIZE = 20 * 1024 * 1024;
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 
 @Injectable()
 export class LessonsService {
@@ -54,6 +55,22 @@ export class LessonsService {
       allowedAttributes: {},
       disallowedTagsMode: 'discard',
     }).trim();
+  }
+
+  private validateVideoUrl(value: string | null | undefined): void {
+    if (!value) return;
+    const url = new URL(value);
+    const hostname = url.hostname.toLowerCase();
+    const isYouTube = hostname === 'youtu.be' || hostname === 'youtube.com'
+      || hostname.endsWith('.youtube.com') || hostname === 'youtube-nocookie.com'
+      || hostname.endsWith('.youtube-nocookie.com');
+    const isVimeo = hostname === 'vimeo.com' || hostname.endsWith('.vimeo.com');
+    const isDirectVideo = /\.mp4$/i.test(url.pathname);
+    if (url.protocol !== 'https:' || (!isYouTube && !isVimeo && !isDirectVideo)) {
+      throw new BadRequestException(
+        'Utilisez un lien HTTPS YouTube, Vimeo ou un fichier MP4 direct.',
+      );
+    }
   }
 
   private async findLessonOrFail(id: string) {
@@ -135,18 +152,16 @@ export class LessonsService {
       );
     }
 
+    if (dto.type === LessonType.VIDEO) {
+      this.validateVideoUrl(dto.videoUrl);
+    }
+
     if (dto.type === LessonType.TEXTE) {
       if (!dto.contentMarkdown?.trim()) {
         throw new BadRequestException(
           'Le contenu Markdown est obligatoire pour une leçon texte',
         );
       }
-    }
-
-    if (dto.type === LessonType.VIDEO) {
-      throw new BadRequestException(
-        'Les vidéos seront disponibles dans la phase 2',
-      );
     }
 
     const contentMarkdown =
@@ -162,7 +177,12 @@ export class LessonsService {
           title: dto.title.trim(),
           type: dto.type,
           contentMarkdown,
-          durationSeconds: null,
+          durationSeconds: dto.type === LessonType.VIDEO
+            ? dto.durationSeconds ?? null
+            : null,
+          videoUrl: dto.type === LessonType.VIDEO
+            ? dto.videoUrl?.trim() || null
+            : null,
           position: dto.position ?? 0,
           status: ContentStatus.BROUILLON,
           createdById: user.id,
@@ -214,7 +234,8 @@ export class LessonsService {
       dto.title === undefined &&
       dto.contentMarkdown === undefined &&
       dto.position === undefined &&
-      dto.durationSeconds === undefined
+      dto.durationSeconds === undefined &&
+      dto.videoUrl === undefined
     ) {
       throw new BadRequestException(
         'Aucune modification fournie',
@@ -225,6 +246,13 @@ export class LessonsService {
       throw new BadRequestException(
         'Le titre est obligatoire',
       );
+    }
+
+    if (dto.videoUrl !== undefined) {
+      if (lesson.type !== LessonType.VIDEO) {
+        throw new BadRequestException('Un lien vidéo ne peut être ajouté qu’à une leçon vidéo.');
+      }
+      this.validateVideoUrl(dto.videoUrl);
     }
 
     if (
@@ -251,6 +279,9 @@ export class LessonsService {
       }),
       ...(dto.durationSeconds !== undefined && {
         durationSeconds: dto.durationSeconds,
+      }),
+      ...(lesson.type === LessonType.VIDEO && dto.videoUrl !== undefined && {
+        videoUrl: dto.videoUrl?.trim() || null,
       }),
       ...(lesson.status === ContentStatus.PUBLIE && {
         version: { increment: 1 },
@@ -286,6 +317,97 @@ export class LessonsService {
 
       return updated;
     });
+  }
+
+  async uploadVideoAsset(
+    user: CurrentUser,
+    lessonId: string,
+    file: Express.Multer.File,
+  ) {
+    if (!file?.buffer?.length) {
+      throw new BadRequestException('Sélectionnez une vidéo MP4 valide.');
+    }
+    if (file.size > MAX_VIDEO_SIZE) {
+      throw new BadRequestException('La vidéo ne doit pas dépasser 100 Mo.');
+    }
+    const detected = await fileTypeFromBuffer(file.buffer);
+    if (detected?.mime !== 'video/mp4') {
+      throw new BadRequestException('Seules les vidéos MP4 sont acceptées.');
+    }
+
+    const lesson = await this.findLessonOrFail(lessonId);
+    await this.teacherScopeService.assertCanManage(
+      user,
+      lesson.chapter.classSubjectId,
+    );
+    if (lesson.type !== LessonType.VIDEO) {
+      throw new BadRequestException('Le téléversement vidéo est réservé aux leçons vidéo.');
+    }
+    if (lesson.status === ContentStatus.ARCHIVE) {
+      throw new BadRequestException('Impossible de modifier une leçon archivée.');
+    }
+
+    const storageKey = `video/${lesson.classId}/${randomUUID()}.mp4`;
+    await this.uploadService.uploadFile({
+      storageKey,
+      buffer: file.buffer,
+      mimeType: 'video/mp4',
+    });
+
+    try {
+      const result = await this.prisma.$transaction(async (tx) => {
+        const previousAssets = await tx.lessonAsset.findMany({
+          where: { lessonId: lesson.id, kind: AssetKind.VIDEO },
+          select: { id: true, storageKey: true },
+        });
+        if (previousAssets.length) {
+          await tx.lessonAsset.deleteMany({
+            where: { id: { in: previousAssets.map((asset) => asset.id) } },
+          });
+        }
+        const asset = await tx.lessonAsset.create({
+          data: {
+            lessonId: lesson.id,
+            kind: AssetKind.VIDEO,
+            storageKey,
+            mimeType: 'video/mp4',
+            sizeBytes: file.buffer.length,
+            durationSeconds: lesson.durationSeconds,
+            processingStatus: AssetProcessingStatus.PRET,
+          },
+        });
+        await tx.lesson.update({
+          where: { id: lesson.id },
+          data: {
+            videoUrl: null,
+            ...(lesson.status === ContentStatus.PUBLIE && {
+              version: { increment: 1 },
+            }),
+          },
+        });
+        await this.auditService.log(
+          {
+            action: AUDIT_ACTIONS.ASSET_UPLOADED,
+            entityType: 'LESSON_ASSET',
+            entityId: asset.id,
+            after: {
+              lessonId: lesson.id,
+              kind: AssetKind.VIDEO,
+              sizeBytes: asset.sizeBytes,
+            },
+          },
+          tx,
+        );
+        return { asset, previousKeys: previousAssets.map((item) => item.storageKey) };
+      });
+      await Promise.all(result.previousKeys.map((key) =>
+        this.uploadService.deleteFile(key).catch(() => undefined),
+      ));
+      return result.asset;
+    } catch (error) {
+      await this.uploadService.deleteFile(storageKey).catch(() => undefined);
+      throw error;
+    }
   }
 
   async uploadPdfAsset(
@@ -526,9 +648,18 @@ async deleteAsset(
     }
 
     if (lesson.type === LessonType.VIDEO) {
-      throw new BadRequestException(
-        'La publication des vidéos sera activée en phase 2',
-      );
+      const videoAsset = await this.prisma.lessonAsset.findFirst({
+        where: {
+          lessonId,
+          kind: AssetKind.VIDEO,
+          processingStatus: AssetProcessingStatus.PRET,
+        },
+      });
+      if (!lesson.videoUrl && !videoAsset) {
+        throw new BadRequestException(
+          'Ajoutez un lien vidéo HTTPS ou téléversez une vidéo MP4 avant publication.',
+        );
+      }
     }
 
     return this.prisma.$transaction(async (tx) => {
@@ -700,13 +831,20 @@ async deleteAsset(
             classSubjectId: true,
           },
         },
+        progress: {
+          where: { userId: user.id },
+          select: { progressPercent: true, lastPositionSeconds: true, completedAt: true },
+        },
         _count: {
           select: {
             assets: true,
           },
         },
       },
-    });
+    }).then((lessons) => lessons.map(({ progress, ...lesson }) => ({
+      ...lesson,
+      myProgress: progress[0] ?? null,
+    })));
   }
 
   // --------------------------------------------------
@@ -772,6 +910,7 @@ async deleteAsset(
       title: lesson.title,
       type: lesson.type,
       contentMarkdown: lesson.contentMarkdown,
+      videoUrl: lesson.videoUrl,
       durationSeconds: lesson.durationSeconds,
       position: lesson.position,
       status: lesson.status,
@@ -902,7 +1041,8 @@ async deleteAsset(
         );
 
         const isComplete =
-          lesson.type === LessonType.TEXTE
+          lesson.type === LessonType.TEXTE ||
+          lesson.type === LessonType.PDF
             ? progressPercent >= 100
             : lesson.type === LessonType.VIDEO &&
               progressPercent >= 80;
@@ -1033,6 +1173,7 @@ async deleteAsset(
               select: {
                 id: true,
                 title: true,
+                classSubjectId: true,
               },
             },
           },

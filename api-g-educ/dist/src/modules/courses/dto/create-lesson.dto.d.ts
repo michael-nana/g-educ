@@ -5,4 +5,5 @@ export declare class CreateLessonDto {
     contentMarkdown?: string;
     position?: number;
     durationSeconds?: number;
+    videoUrl?: string;
 }

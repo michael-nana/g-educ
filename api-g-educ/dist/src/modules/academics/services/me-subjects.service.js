@@ -12,6 +12,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.MeSubjectsService = void 0;
 const common_1 = require("@nestjs/common");
 const prisma_service_1 = require("../../../prisma/prisma.service");
+const client_1 = require("../../../generated/prisma/client");
 let MeSubjectsService = class MeSubjectsService {
     prisma;
     constructor(prisma) {
@@ -27,7 +28,7 @@ let MeSubjectsService = class MeSubjectsService {
         if (!profile) {
             throw new common_1.NotFoundException('Profil élève introuvable');
         }
-        return this.prisma.classSubject.findMany({
+        const classSubjects = await this.prisma.classSubject.findMany({
             where: {
                 classId: profile.classId,
                 subject: {
@@ -45,10 +46,51 @@ let MeSubjectsService = class MeSubjectsService {
                         slug: true,
                     },
                 },
+                chapters: {
+                    where: { status: client_1.ContentStatus.PUBLIE },
+                    select: {
+                        lessons: {
+                            where: { status: client_1.ContentStatus.PUBLIE },
+                            select: {
+                                type: true,
+                                progress: {
+                                    where: { userId },
+                                    select: { progressPercent: true, completedAt: true },
+                                },
+                            },
+                        },
+                    },
+                },
             },
             orderBy: {
                 position: 'asc',
             },
+        });
+        return classSubjects.map(({ chapters, ...classSubject }) => {
+            const lessons = chapters.flatMap((chapter) => chapter.lessons);
+            const totalLessons = lessons.length;
+            const completedLessons = lessons.filter((lesson) => {
+                const progress = lesson.progress[0];
+                return Boolean(progress?.completedAt) || (lesson.type === 'VIDEO'
+                    ? (progress?.progressPercent ?? 0) >= 80
+                    : (progress?.progressPercent ?? 0) >= 100);
+            }).length;
+            const progressTotal = lessons.reduce((total, lesson) => {
+                const progress = lesson.progress[0];
+                const percent = progress?.progressPercent ?? 0;
+                const isComplete = Boolean(progress?.completedAt) || (lesson.type === 'VIDEO'
+                    ? percent >= 80
+                    : percent >= 100);
+                return total + (isComplete ? 100 : percent);
+            }, 0);
+            return {
+                ...classSubject,
+                progressPercent: totalLessons ? Math.round(progressTotal / totalLessons) : 0,
+                completedLessons,
+                totalLessons,
+                totalChapters: chapters.length,
+                trackedLessons: lessons.filter((lesson) => lesson.progress.length > 0).length,
+            };
         });
     }
 };

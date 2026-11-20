@@ -20,6 +20,7 @@ export type AttemptAnswerMinAggregateOutputType = {
     questionId: string | null;
     isCorrect: boolean | null;
     pointsAwarded: number | null;
+    responseText: string | null;
     answeredAt: Date | null;
 };
 export type AttemptAnswerMaxAggregateOutputType = {
@@ -28,6 +29,7 @@ export type AttemptAnswerMaxAggregateOutputType = {
     questionId: string | null;
     isCorrect: boolean | null;
     pointsAwarded: number | null;
+    responseText: string | null;
     answeredAt: Date | null;
 };
 export type AttemptAnswerCountAggregateOutputType = {
@@ -36,6 +38,7 @@ export type AttemptAnswerCountAggregateOutputType = {
     questionId: number;
     isCorrect: number;
     pointsAwarded: number;
+    responseText: number;
     answeredAt: number;
     _all: number;
 };
@@ -51,6 +54,7 @@ export type AttemptAnswerMinAggregateInputType = {
     questionId?: true;
     isCorrect?: true;
     pointsAwarded?: true;
+    responseText?: true;
     answeredAt?: true;
 };
 export type AttemptAnswerMaxAggregateInputType = {
@@ -59,6 +63,7 @@ export type AttemptAnswerMaxAggregateInputType = {
     questionId?: true;
     isCorrect?: true;
     pointsAwarded?: true;
+    responseText?: true;
     answeredAt?: true;
 };
 export type AttemptAnswerCountAggregateInputType = {
@@ -67,6 +72,7 @@ export type AttemptAnswerCountAggregateInputType = {
     questionId?: true;
     isCorrect?: true;
     pointsAwarded?: true;
+    responseText?: true;
     answeredAt?: true;
     _all?: true;
 };
@@ -104,6 +110,7 @@ export type AttemptAnswerGroupByOutputType = {
     questionId: string;
     isCorrect: boolean;
     pointsAwarded: number;
+    responseText: string | null;
     answeredAt: Date;
     _count: AttemptAnswerCountAggregateOutputType | null;
     _avg: AttemptAnswerAvgAggregateOutputType | null;
@@ -123,6 +130,7 @@ export type AttemptAnswerWhereInput = {
     questionId?: Prisma.UuidFilter<"AttemptAnswer"> | string;
     isCorrect?: Prisma.BoolFilter<"AttemptAnswer"> | boolean;
     pointsAwarded?: Prisma.IntFilter<"AttemptAnswer"> | number;
+    responseText?: Prisma.StringNullableFilter<"AttemptAnswer"> | string | null;
     answeredAt?: Prisma.DateTimeFilter<"AttemptAnswer"> | Date | string;
     attempt?: Prisma.XOR<Prisma.AttemptScalarRelationFilter, Prisma.AttemptWhereInput>;
     question?: Prisma.XOR<Prisma.QuestionScalarRelationFilter, Prisma.QuestionWhereInput>;
@@ -134,6 +142,7 @@ export type AttemptAnswerOrderByWithRelationInput = {
     questionId?: Prisma.SortOrder;
     isCorrect?: Prisma.SortOrder;
     pointsAwarded?: Prisma.SortOrder;
+    responseText?: Prisma.SortOrderInput | Prisma.SortOrder;
     answeredAt?: Prisma.SortOrder;
     attempt?: Prisma.AttemptOrderByWithRelationInput;
     question?: Prisma.QuestionOrderByWithRelationInput;
@@ -149,6 +158,7 @@ export type AttemptAnswerWhereUniqueInput = Prisma.AtLeast<{
     questionId?: Prisma.UuidFilter<"AttemptAnswer"> | string;
     isCorrect?: Prisma.BoolFilter<"AttemptAnswer"> | boolean;
     pointsAwarded?: Prisma.IntFilter<"AttemptAnswer"> | number;
+    responseText?: Prisma.StringNullableFilter<"AttemptAnswer"> | string | null;
     answeredAt?: Prisma.DateTimeFilter<"AttemptAnswer"> | Date | string;
     attempt?: Prisma.XOR<Prisma.AttemptScalarRelationFilter, Prisma.AttemptWhereInput>;
     question?: Prisma.XOR<Prisma.QuestionScalarRelationFilter, Prisma.QuestionWhereInput>;
@@ -160,6 +170,7 @@ export type AttemptAnswerOrderByWithAggregationInput = {
     questionId?: Prisma.SortOrder;
     isCorrect?: Prisma.SortOrder;
     pointsAwarded?: Prisma.SortOrder;
+    responseText?: Prisma.SortOrderInput | Prisma.SortOrder;
     answeredAt?: Prisma.SortOrder;
     _count?: Prisma.AttemptAnswerCountOrderByAggregateInput;
     _avg?: Prisma.AttemptAnswerAvgOrderByAggregateInput;
@@ -176,12 +187,14 @@ export type AttemptAnswerScalarWhereWithAggregatesInput = {
     questionId?: Prisma.UuidWithAggregatesFilter<"AttemptAnswer"> | string;
     isCorrect?: Prisma.BoolWithAggregatesFilter<"AttemptAnswer"> | boolean;
     pointsAwarded?: Prisma.IntWithAggregatesFilter<"AttemptAnswer"> | number;
+    responseText?: Prisma.StringNullableWithAggregatesFilter<"AttemptAnswer"> | string | null;
     answeredAt?: Prisma.DateTimeWithAggregatesFilter<"AttemptAnswer"> | Date | string;
 };
 export type AttemptAnswerCreateInput = {
     id?: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     attempt: Prisma.AttemptCreateNestedOneWithoutAnswersInput;
     question: Prisma.QuestionCreateNestedOneWithoutAnswersInput;
@@ -193,6 +206,7 @@ export type AttemptAnswerUncheckedCreateInput = {
     questionId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     options?: Prisma.AttemptAnswerOptionUncheckedCreateNestedManyWithoutAttemptAnswerInput;
 };
@@ -200,6 +214,7 @@ export type AttemptAnswerUpdateInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     attempt?: Prisma.AttemptUpdateOneRequiredWithoutAnswersNestedInput;
     question?: Prisma.QuestionUpdateOneRequiredWithoutAnswersNestedInput;
@@ -211,6 +226,7 @@ export type AttemptAnswerUncheckedUpdateInput = {
     questionId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     options?: Prisma.AttemptAnswerOptionUncheckedUpdateManyWithoutAttemptAnswerNestedInput;
 };
@@ -220,12 +236,14 @@ export type AttemptAnswerCreateManyInput = {
     questionId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
 };
 export type AttemptAnswerUpdateManyMutationInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type AttemptAnswerUncheckedUpdateManyInput = {
@@ -234,6 +252,7 @@ export type AttemptAnswerUncheckedUpdateManyInput = {
     questionId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type AttemptAnswerListRelationFilter = {
@@ -254,6 +273,7 @@ export type AttemptAnswerCountOrderByAggregateInput = {
     questionId?: Prisma.SortOrder;
     isCorrect?: Prisma.SortOrder;
     pointsAwarded?: Prisma.SortOrder;
+    responseText?: Prisma.SortOrder;
     answeredAt?: Prisma.SortOrder;
 };
 export type AttemptAnswerAvgOrderByAggregateInput = {
@@ -265,6 +285,7 @@ export type AttemptAnswerMaxOrderByAggregateInput = {
     questionId?: Prisma.SortOrder;
     isCorrect?: Prisma.SortOrder;
     pointsAwarded?: Prisma.SortOrder;
+    responseText?: Prisma.SortOrder;
     answeredAt?: Prisma.SortOrder;
 };
 export type AttemptAnswerMinOrderByAggregateInput = {
@@ -273,6 +294,7 @@ export type AttemptAnswerMinOrderByAggregateInput = {
     questionId?: Prisma.SortOrder;
     isCorrect?: Prisma.SortOrder;
     pointsAwarded?: Prisma.SortOrder;
+    responseText?: Prisma.SortOrder;
     answeredAt?: Prisma.SortOrder;
 };
 export type AttemptAnswerSumOrderByAggregateInput = {
@@ -374,6 +396,7 @@ export type AttemptAnswerCreateWithoutQuestionInput = {
     id?: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     attempt: Prisma.AttemptCreateNestedOneWithoutAnswersInput;
     options?: Prisma.AttemptAnswerOptionCreateNestedManyWithoutAttemptAnswerInput;
@@ -383,6 +406,7 @@ export type AttemptAnswerUncheckedCreateWithoutQuestionInput = {
     attemptId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     options?: Prisma.AttemptAnswerOptionUncheckedCreateNestedManyWithoutAttemptAnswerInput;
 };
@@ -416,12 +440,14 @@ export type AttemptAnswerScalarWhereInput = {
     questionId?: Prisma.UuidFilter<"AttemptAnswer"> | string;
     isCorrect?: Prisma.BoolFilter<"AttemptAnswer"> | boolean;
     pointsAwarded?: Prisma.IntFilter<"AttemptAnswer"> | number;
+    responseText?: Prisma.StringNullableFilter<"AttemptAnswer"> | string | null;
     answeredAt?: Prisma.DateTimeFilter<"AttemptAnswer"> | Date | string;
 };
 export type AttemptAnswerCreateWithoutAttemptInput = {
     id?: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     question: Prisma.QuestionCreateNestedOneWithoutAnswersInput;
     options?: Prisma.AttemptAnswerOptionCreateNestedManyWithoutAttemptAnswerInput;
@@ -431,6 +457,7 @@ export type AttemptAnswerUncheckedCreateWithoutAttemptInput = {
     questionId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     options?: Prisma.AttemptAnswerOptionUncheckedCreateNestedManyWithoutAttemptAnswerInput;
 };
@@ -459,6 +486,7 @@ export type AttemptAnswerCreateWithoutOptionsInput = {
     id?: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
     attempt: Prisma.AttemptCreateNestedOneWithoutAnswersInput;
     question: Prisma.QuestionCreateNestedOneWithoutAnswersInput;
@@ -469,6 +497,7 @@ export type AttemptAnswerUncheckedCreateWithoutOptionsInput = {
     questionId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
 };
 export type AttemptAnswerCreateOrConnectWithoutOptionsInput = {
@@ -488,6 +517,7 @@ export type AttemptAnswerUpdateWithoutOptionsInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     attempt?: Prisma.AttemptUpdateOneRequiredWithoutAnswersNestedInput;
     question?: Prisma.QuestionUpdateOneRequiredWithoutAnswersNestedInput;
@@ -498,6 +528,7 @@ export type AttemptAnswerUncheckedUpdateWithoutOptionsInput = {
     questionId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type AttemptAnswerCreateManyQuestionInput = {
@@ -505,12 +536,14 @@ export type AttemptAnswerCreateManyQuestionInput = {
     attemptId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
 };
 export type AttemptAnswerUpdateWithoutQuestionInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     attempt?: Prisma.AttemptUpdateOneRequiredWithoutAnswersNestedInput;
     options?: Prisma.AttemptAnswerOptionUpdateManyWithoutAttemptAnswerNestedInput;
@@ -520,6 +553,7 @@ export type AttemptAnswerUncheckedUpdateWithoutQuestionInput = {
     attemptId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     options?: Prisma.AttemptAnswerOptionUncheckedUpdateManyWithoutAttemptAnswerNestedInput;
 };
@@ -528,6 +562,7 @@ export type AttemptAnswerUncheckedUpdateManyWithoutQuestionInput = {
     attemptId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type AttemptAnswerCreateManyAttemptInput = {
@@ -535,12 +570,14 @@ export type AttemptAnswerCreateManyAttemptInput = {
     questionId: string;
     isCorrect: boolean;
     pointsAwarded?: number;
+    responseText?: string | null;
     answeredAt?: Date | string;
 };
 export type AttemptAnswerUpdateWithoutAttemptInput = {
     id?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     question?: Prisma.QuestionUpdateOneRequiredWithoutAnswersNestedInput;
     options?: Prisma.AttemptAnswerOptionUpdateManyWithoutAttemptAnswerNestedInput;
@@ -550,6 +587,7 @@ export type AttemptAnswerUncheckedUpdateWithoutAttemptInput = {
     questionId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
     options?: Prisma.AttemptAnswerOptionUncheckedUpdateManyWithoutAttemptAnswerNestedInput;
 };
@@ -558,6 +596,7 @@ export type AttemptAnswerUncheckedUpdateManyWithoutAttemptInput = {
     questionId?: Prisma.StringFieldUpdateOperationsInput | string;
     isCorrect?: Prisma.BoolFieldUpdateOperationsInput | boolean;
     pointsAwarded?: Prisma.IntFieldUpdateOperationsInput | number;
+    responseText?: Prisma.NullableStringFieldUpdateOperationsInput | string | null;
     answeredAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string;
 };
 export type AttemptAnswerCountOutputType = {
@@ -578,6 +617,7 @@ export type AttemptAnswerSelect<ExtArgs extends runtime.Types.Extensions.Interna
     questionId?: boolean;
     isCorrect?: boolean;
     pointsAwarded?: boolean;
+    responseText?: boolean;
     answeredAt?: boolean;
     attempt?: boolean | Prisma.AttemptDefaultArgs<ExtArgs>;
     question?: boolean | Prisma.QuestionDefaultArgs<ExtArgs>;
@@ -590,6 +630,7 @@ export type AttemptAnswerSelectCreateManyAndReturn<ExtArgs extends runtime.Types
     questionId?: boolean;
     isCorrect?: boolean;
     pointsAwarded?: boolean;
+    responseText?: boolean;
     answeredAt?: boolean;
     attempt?: boolean | Prisma.AttemptDefaultArgs<ExtArgs>;
     question?: boolean | Prisma.QuestionDefaultArgs<ExtArgs>;
@@ -600,6 +641,7 @@ export type AttemptAnswerSelectUpdateManyAndReturn<ExtArgs extends runtime.Types
     questionId?: boolean;
     isCorrect?: boolean;
     pointsAwarded?: boolean;
+    responseText?: boolean;
     answeredAt?: boolean;
     attempt?: boolean | Prisma.AttemptDefaultArgs<ExtArgs>;
     question?: boolean | Prisma.QuestionDefaultArgs<ExtArgs>;
@@ -610,9 +652,10 @@ export type AttemptAnswerSelectScalar = {
     questionId?: boolean;
     isCorrect?: boolean;
     pointsAwarded?: boolean;
+    responseText?: boolean;
     answeredAt?: boolean;
 };
-export type AttemptAnswerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attemptId" | "questionId" | "isCorrect" | "pointsAwarded" | "answeredAt", ExtArgs["result"]["attemptAnswer"]>;
+export type AttemptAnswerOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "attemptId" | "questionId" | "isCorrect" | "pointsAwarded" | "responseText" | "answeredAt", ExtArgs["result"]["attemptAnswer"]>;
 export type AttemptAnswerInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
     attempt?: boolean | Prisma.AttemptDefaultArgs<ExtArgs>;
     question?: boolean | Prisma.QuestionDefaultArgs<ExtArgs>;
@@ -640,6 +683,7 @@ export type $AttemptAnswerPayload<ExtArgs extends runtime.Types.Extensions.Inter
         questionId: string;
         isCorrect: boolean;
         pointsAwarded: number;
+        responseText: string | null;
         answeredAt: Date;
     }, ExtArgs["result"]["attemptAnswer"]>;
     composites: {};
@@ -706,6 +750,7 @@ export interface AttemptAnswerFieldRefs {
     readonly questionId: Prisma.FieldRef<"AttemptAnswer", 'String'>;
     readonly isCorrect: Prisma.FieldRef<"AttemptAnswer", 'Boolean'>;
     readonly pointsAwarded: Prisma.FieldRef<"AttemptAnswer", 'Int'>;
+    readonly responseText: Prisma.FieldRef<"AttemptAnswer", 'String'>;
     readonly answeredAt: Prisma.FieldRef<"AttemptAnswer", 'DateTime'>;
 }
 export type AttemptAnswerFindUniqueArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {

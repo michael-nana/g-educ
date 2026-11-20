@@ -4,6 +4,8 @@ import {
   IsInt,
   IsOptional,
   IsString,
+  IsUrl,
+  MaxLength,
   Max,
   Min,
   MinLength,
@@ -33,4 +35,9 @@ export class CreateLessonDto {
   @IsInt()
   @Min(1)
   durationSeconds?: number;
+
+  @IsOptional()
+  @IsUrl({ protocols: ['https'], require_protocol: true })
+  @MaxLength(2048)
+  videoUrl?: string;
 }

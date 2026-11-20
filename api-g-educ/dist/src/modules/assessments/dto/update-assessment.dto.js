@@ -13,7 +13,9 @@ exports.UpdateAssessmentDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const create_question_dto_1 = require("./create-question.dto");
+const client_1 = require("../../../generated/prisma/client");
 class UpdateAssessmentDto {
+    exerciseFormat;
     title;
     instructions;
     durationSeconds;
@@ -22,6 +24,11 @@ class UpdateAssessmentDto {
     questions;
 }
 exports.UpdateAssessmentDto = UpdateAssessmentDto;
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEnum)(client_1.ExerciseFormat),
+    __metadata("design:type", String)
+], UpdateAssessmentDto.prototype, "exerciseFormat", void 0);
 __decorate([
     (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),

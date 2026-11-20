@@ -161,11 +161,6 @@ export default function NotificationsPage() {
     selectedClass as (SchoolClass & { activeStudentCount?: number }) | undefined
   )?.activeStudentCount;
 
-  const audienceLabel =
-    form.audience === 'class' && selectedClass
-      ? selectedClass.label
-      : 'tous les élèves actifs';
-
   const setAudience = (audience: Audience) => {
     setError('');
     setForm((current) => ({

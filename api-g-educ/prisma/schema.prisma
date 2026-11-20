@@ -87,6 +87,11 @@ enum AssessmentKind {
   QUIZ
 }
 
+enum ExerciseFormat {
+  TEXTE
+  PDF
+}
+
 enum QuestionType {
   QCM_UNIQUE
   QCM_MULTIPLE
@@ -467,6 +472,7 @@ model Lesson {
   title           String
   type            LessonType
   contentMarkdown String?       @db.Text // type TEXTE : Markdown nettoyé côté serveur
+  videoUrl        String?       @db.Text // type VIDEO : lien HTTPS direct ou lien de plateforme compatible
   durationSeconds Int? // type VIDEO
   position        Int           @default(0)
   status          ContentStatus @default(BROUILLON)
@@ -546,6 +552,11 @@ model Assessment {
   chapterId       String         @db.Uuid
   classId         String         @db.Uuid
   kind            AssessmentKind
+  exerciseFormat  ExerciseFormat @default(TEXTE)
+  exercisePdfKey  String?
+  exercisePdfName String?
+  correctionPdfKey  String?
+  correctionPdfName String?
   title           String
   instructions    String?
   durationSeconds Int? // quiz chronométré
@@ -632,6 +643,7 @@ model AttemptAnswer {
   questionId    String   @db.Uuid
   isCorrect     Boolean
   pointsAwarded Int      @default(0)
+  responseText  String?  @db.Text
   answeredAt    DateTime @default(now())
 
   attempt  Attempt               @relation(fields: [attemptId], references: [id], onDelete: Cascade)

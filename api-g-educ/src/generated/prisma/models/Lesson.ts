@@ -45,6 +45,7 @@ export type LessonMinAggregateOutputType = {
   title: string | null
   type: $Enums.LessonType | null
   contentMarkdown: string | null
+  videoUrl: string | null
   durationSeconds: number | null
   position: number | null
   status: $Enums.ContentStatus | null
@@ -63,6 +64,7 @@ export type LessonMaxAggregateOutputType = {
   title: string | null
   type: $Enums.LessonType | null
   contentMarkdown: string | null
+  videoUrl: string | null
   durationSeconds: number | null
   position: number | null
   status: $Enums.ContentStatus | null
@@ -81,6 +83,7 @@ export type LessonCountAggregateOutputType = {
   title: number
   type: number
   contentMarkdown: number
+  videoUrl: number
   durationSeconds: number
   position: number
   status: number
@@ -113,6 +116,7 @@ export type LessonMinAggregateInputType = {
   title?: true
   type?: true
   contentMarkdown?: true
+  videoUrl?: true
   durationSeconds?: true
   position?: true
   status?: true
@@ -131,6 +135,7 @@ export type LessonMaxAggregateInputType = {
   title?: true
   type?: true
   contentMarkdown?: true
+  videoUrl?: true
   durationSeconds?: true
   position?: true
   status?: true
@@ -149,6 +154,7 @@ export type LessonCountAggregateInputType = {
   title?: true
   type?: true
   contentMarkdown?: true
+  videoUrl?: true
   durationSeconds?: true
   position?: true
   status?: true
@@ -254,6 +260,7 @@ export type LessonGroupByOutputType = {
   title: string
   type: $Enums.LessonType
   contentMarkdown: string | null
+  videoUrl: string | null
   durationSeconds: number | null
   position: number
   status: $Enums.ContentStatus
@@ -295,6 +302,7 @@ export type LessonWhereInput = {
   title?: Prisma.StringFilter<"Lesson"> | string
   type?: Prisma.EnumLessonTypeFilter<"Lesson"> | $Enums.LessonType
   contentMarkdown?: Prisma.StringNullableFilter<"Lesson"> | string | null
+  videoUrl?: Prisma.StringNullableFilter<"Lesson"> | string | null
   durationSeconds?: Prisma.IntNullableFilter<"Lesson"> | number | null
   position?: Prisma.IntFilter<"Lesson"> | number
   status?: Prisma.EnumContentStatusFilter<"Lesson"> | $Enums.ContentStatus
@@ -319,6 +327,7 @@ export type LessonOrderByWithRelationInput = {
   title?: Prisma.SortOrder
   type?: Prisma.SortOrder
   contentMarkdown?: Prisma.SortOrderInput | Prisma.SortOrder
+  videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   durationSeconds?: Prisma.SortOrderInput | Prisma.SortOrder
   position?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -346,6 +355,7 @@ export type LessonWhereUniqueInput = Prisma.AtLeast<{
   title?: Prisma.StringFilter<"Lesson"> | string
   type?: Prisma.EnumLessonTypeFilter<"Lesson"> | $Enums.LessonType
   contentMarkdown?: Prisma.StringNullableFilter<"Lesson"> | string | null
+  videoUrl?: Prisma.StringNullableFilter<"Lesson"> | string | null
   durationSeconds?: Prisma.IntNullableFilter<"Lesson"> | number | null
   position?: Prisma.IntFilter<"Lesson"> | number
   status?: Prisma.EnumContentStatusFilter<"Lesson"> | $Enums.ContentStatus
@@ -370,6 +380,7 @@ export type LessonOrderByWithAggregationInput = {
   title?: Prisma.SortOrder
   type?: Prisma.SortOrder
   contentMarkdown?: Prisma.SortOrderInput | Prisma.SortOrder
+  videoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   durationSeconds?: Prisma.SortOrderInput | Prisma.SortOrder
   position?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -396,6 +407,7 @@ export type LessonScalarWhereWithAggregatesInput = {
   title?: Prisma.StringWithAggregatesFilter<"Lesson"> | string
   type?: Prisma.EnumLessonTypeWithAggregatesFilter<"Lesson"> | $Enums.LessonType
   contentMarkdown?: Prisma.StringNullableWithAggregatesFilter<"Lesson"> | string | null
+  videoUrl?: Prisma.StringNullableWithAggregatesFilter<"Lesson"> | string | null
   durationSeconds?: Prisma.IntNullableWithAggregatesFilter<"Lesson"> | number | null
   position?: Prisma.IntWithAggregatesFilter<"Lesson"> | number
   status?: Prisma.EnumContentStatusWithAggregatesFilter<"Lesson"> | $Enums.ContentStatus
@@ -412,6 +424,7 @@ export type LessonCreateInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -434,6 +447,7 @@ export type LessonUncheckedCreateInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -453,6 +467,7 @@ export type LessonUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -475,6 +490,7 @@ export type LessonUncheckedUpdateInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -496,6 +512,7 @@ export type LessonCreateManyInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -512,6 +529,7 @@ export type LessonUpdateManyMutationInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -528,6 +546,7 @@ export type LessonUncheckedUpdateManyInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -556,6 +575,7 @@ export type LessonCountOrderByAggregateInput = {
   title?: Prisma.SortOrder
   type?: Prisma.SortOrder
   contentMarkdown?: Prisma.SortOrder
+  videoUrl?: Prisma.SortOrder
   durationSeconds?: Prisma.SortOrder
   position?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -580,6 +600,7 @@ export type LessonMaxOrderByAggregateInput = {
   title?: Prisma.SortOrder
   type?: Prisma.SortOrder
   contentMarkdown?: Prisma.SortOrder
+  videoUrl?: Prisma.SortOrder
   durationSeconds?: Prisma.SortOrder
   position?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -598,6 +619,7 @@ export type LessonMinOrderByAggregateInput = {
   title?: Prisma.SortOrder
   type?: Prisma.SortOrder
   contentMarkdown?: Prisma.SortOrder
+  videoUrl?: Prisma.SortOrder
   durationSeconds?: Prisma.SortOrder
   position?: Prisma.SortOrder
   status?: Prisma.SortOrder
@@ -797,6 +819,7 @@ export type LessonCreateWithoutCreatedByInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -818,6 +841,7 @@ export type LessonUncheckedCreateWithoutCreatedByInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -846,6 +870,7 @@ export type LessonCreateWithoutPublishedByInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -867,6 +892,7 @@ export type LessonUncheckedCreateWithoutPublishedByInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -916,6 +942,7 @@ export type LessonScalarWhereInput = {
   title?: Prisma.StringFilter<"Lesson"> | string
   type?: Prisma.EnumLessonTypeFilter<"Lesson"> | $Enums.LessonType
   contentMarkdown?: Prisma.StringNullableFilter<"Lesson"> | string | null
+  videoUrl?: Prisma.StringNullableFilter<"Lesson"> | string | null
   durationSeconds?: Prisma.IntNullableFilter<"Lesson"> | number | null
   position?: Prisma.IntFilter<"Lesson"> | number
   status?: Prisma.EnumContentStatusFilter<"Lesson"> | $Enums.ContentStatus
@@ -948,6 +975,7 @@ export type LessonCreateWithoutChapterInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -967,6 +995,7 @@ export type LessonUncheckedCreateWithoutChapterInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1012,6 +1041,7 @@ export type LessonCreateWithoutAssetsInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1033,6 +1063,7 @@ export type LessonUncheckedCreateWithoutAssetsInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1067,6 +1098,7 @@ export type LessonUpdateWithoutAssetsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1088,6 +1120,7 @@ export type LessonUncheckedUpdateWithoutAssetsInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1106,6 +1139,7 @@ export type LessonCreateWithoutFavoritesInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1127,6 +1161,7 @@ export type LessonUncheckedCreateWithoutFavoritesInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1161,6 +1196,7 @@ export type LessonUpdateWithoutFavoritesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1182,6 +1218,7 @@ export type LessonUncheckedUpdateWithoutFavoritesInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1200,6 +1237,7 @@ export type LessonCreateWithoutProgressInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1221,6 +1259,7 @@ export type LessonUncheckedCreateWithoutProgressInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1255,6 +1294,7 @@ export type LessonUpdateWithoutProgressInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1276,6 +1316,7 @@ export type LessonUncheckedUpdateWithoutProgressInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1296,6 +1337,7 @@ export type LessonCreateManyCreatedByInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1313,6 +1355,7 @@ export type LessonCreateManyPublishedByInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1328,6 +1371,7 @@ export type LessonUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1349,6 +1393,7 @@ export type LessonUncheckedUpdateWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1369,6 +1414,7 @@ export type LessonUncheckedUpdateManyWithoutCreatedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1384,6 +1430,7 @@ export type LessonUpdateWithoutPublishedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1405,6 +1452,7 @@ export type LessonUncheckedUpdateWithoutPublishedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1425,6 +1473,7 @@ export type LessonUncheckedUpdateManyWithoutPublishedByInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1440,6 +1489,7 @@ export type LessonCreateManyChapterInput = {
   title: string
   type: $Enums.LessonType
   contentMarkdown?: string | null
+  videoUrl?: string | null
   durationSeconds?: number | null
   position?: number
   status?: $Enums.ContentStatus
@@ -1456,6 +1506,7 @@ export type LessonUpdateWithoutChapterInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1475,6 +1526,7 @@ export type LessonUncheckedUpdateWithoutChapterInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1494,6 +1546,7 @@ export type LessonUncheckedUpdateManyWithoutChapterInput = {
   title?: Prisma.StringFieldUpdateOperationsInput | string
   type?: Prisma.EnumLessonTypeFieldUpdateOperationsInput | $Enums.LessonType
   contentMarkdown?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  videoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   durationSeconds?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   position?: Prisma.IntFieldUpdateOperationsInput | number
   status?: Prisma.EnumContentStatusFieldUpdateOperationsInput | $Enums.ContentStatus
@@ -1561,6 +1614,7 @@ export type LessonSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   title?: boolean
   type?: boolean
   contentMarkdown?: boolean
+  videoUrl?: boolean
   durationSeconds?: boolean
   position?: boolean
   status?: boolean
@@ -1586,6 +1640,7 @@ export type LessonSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   title?: boolean
   type?: boolean
   contentMarkdown?: boolean
+  videoUrl?: boolean
   durationSeconds?: boolean
   position?: boolean
   status?: boolean
@@ -1607,6 +1662,7 @@ export type LessonSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   title?: boolean
   type?: boolean
   contentMarkdown?: boolean
+  videoUrl?: boolean
   durationSeconds?: boolean
   position?: boolean
   status?: boolean
@@ -1628,6 +1684,7 @@ export type LessonSelectScalar = {
   title?: boolean
   type?: boolean
   contentMarkdown?: boolean
+  videoUrl?: boolean
   durationSeconds?: boolean
   position?: boolean
   status?: boolean
@@ -1639,7 +1696,7 @@ export type LessonSelectScalar = {
   updatedAt?: boolean
 }
 
-export type LessonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chapterId" | "classId" | "title" | "type" | "contentMarkdown" | "durationSeconds" | "position" | "status" | "version" | "createdById" | "publishedById" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["lesson"]>
+export type LessonOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "chapterId" | "classId" | "title" | "type" | "contentMarkdown" | "videoUrl" | "durationSeconds" | "position" | "status" | "version" | "createdById" | "publishedById" | "publishedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["lesson"]>
 export type LessonInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   chapter?: boolean | Prisma.ChapterDefaultArgs<ExtArgs>
   createdBy?: boolean | Prisma.UserDefaultArgs<ExtArgs>
@@ -1677,6 +1734,7 @@ export type $LessonPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     title: string
     type: $Enums.LessonType
     contentMarkdown: string | null
+    videoUrl: string | null
     durationSeconds: number | null
     position: number
     status: $Enums.ContentStatus
@@ -2121,6 +2179,7 @@ export interface LessonFieldRefs {
   readonly title: Prisma.FieldRef<"Lesson", 'String'>
   readonly type: Prisma.FieldRef<"Lesson", 'LessonType'>
   readonly contentMarkdown: Prisma.FieldRef<"Lesson", 'String'>
+  readonly videoUrl: Prisma.FieldRef<"Lesson", 'String'>
   readonly durationSeconds: Prisma.FieldRef<"Lesson", 'Int'>
   readonly position: Prisma.FieldRef<"Lesson", 'Int'>
   readonly status: Prisma.FieldRef<"Lesson", 'ContentStatus'>

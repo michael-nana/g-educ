@@ -42,6 +42,9 @@ interface AssessmentQuestionForm {
 }
 
 interface AssessmentForm {
+  exerciseFormat: 'TEXTE' | 'PDF';
+  exercisePdfFile: File | null;
+  correctionPdfFile: File | null;
   title: string;
   instructions: string;
   durationMinutes: string;
@@ -84,6 +87,9 @@ function createEmptyQuestion(): AssessmentQuestionForm {
 
 function createEmptyForm(): AssessmentForm {
   return {
+    exerciseFormat: 'TEXTE',
+    exercisePdfFile: null,
+    correctionPdfFile: null,
     title: '',
     instructions: '',
     durationMinutes: '',
@@ -134,6 +140,9 @@ function formatUpdatedDate(value: string): string {
 
 function getFormFromAssessment(assessment: Assessment): AssessmentForm {
   return {
+    exerciseFormat: assessment.exerciseFormat ?? 'TEXTE',
+    exercisePdfFile: null,
+    correctionPdfFile: null,
     title: assessment.title,
     instructions: assessment.instructions ?? '',
     durationMinutes:
@@ -199,6 +208,8 @@ export default function AssessmentsPage({
   );
   const activeQuestion =
     form.questions[activeQuestionIndex] ?? form.questions[0];
+  const exerciseEditorMode = (editingAssessment?.kind ?? newKind) === 'EXERCICE';
+  const pdfExerciseMode = exerciseEditorMode && form.exerciseFormat === 'PDF';
 
   useEffect(() => {
     let active = true;
@@ -412,6 +423,7 @@ export default function AssessmentsPage({
   };
 
   const validateQuestions = (): boolean => {
+    const exerciseEditor = (editingAssessment?.kind ?? newKind) === 'EXERCICE';
     if (form.questions.length === 0) {
       setFormError('Ajoutez au moins une question.');
       return false;
@@ -423,12 +435,18 @@ export default function AssessmentsPage({
         setFormError(`Saisissez l’énoncé de la question ${index + 1}.`);
         return false;
       }
-      if (question.options.some((option) => !option.label.trim())) {
+      if (exerciseEditor && !question.options[0]?.label.trim()) {
+        setFormError(`Saisissez la réponse attendue pour l’exercice ${index + 1}.`);
+        return false;
+      }
+      if (!exerciseEditor && question.options.some((option) => !option.label.trim())) {
         setFormError(
           `Complétez toutes les réponses de la question ${index + 1}.`,
         );
         return false;
       }
+
+      if (exerciseEditor) continue;
 
       const correctCount = question.options.filter(
         (option) => option.isCorrect,
@@ -488,7 +506,19 @@ export default function AssessmentsPage({
       setFormError('Le seuil de réussite doit être entre 0 et 100 %.');
       return;
     }
-    if (!validateQuestions()) return;
+    const exerciseEditor = (editingAssessment?.kind ?? newKind) === 'EXERCICE';
+    const pdfExercise = exerciseEditor && form.exerciseFormat === 'PDF';
+    if (!pdfExercise && !validateQuestions()) return;
+    if (pdfExercise) {
+      if (!form.exercisePdfFile && !editingAssessment?.exercisePdfName) {
+        setFormError('Ajoutez le PDF de l’énoncé de l’exercice.');
+        return;
+      }
+      if (!form.correctionPdfFile && !editingAssessment?.correctionPdfName) {
+        setFormError('Ajoutez le PDF de correction de l’exercice.');
+        return;
+      }
+    }
 
     setSaving(true);
     setPageError('');
@@ -497,6 +527,7 @@ export default function AssessmentsPage({
     try {
       if (editingAssessment) {
         const payload: UpdateAssessmentDto = {
+          ...(exerciseEditor ? { exerciseFormat: form.exerciseFormat } : {}),
           title,
           instructions: form.instructions.trim(),
           durationSeconds:
@@ -505,31 +536,42 @@ export default function AssessmentsPage({
               : Math.round(durationMinutes * 60),
           passingPercent,
           position: position - 1,
-          questions: form.questions.map((question, questionIndex) => ({
+          ...(!pdfExercise ? { questions: form.questions.map((question, questionIndex) => ({
             type: question.type,
             statement: question.statement.trim(),
             explanation: question.explanation.trim() || undefined,
             points: Number(question.points),
             position: questionIndex,
-            options: question.options.map((option, optionIndex) => ({
+            options: (exerciseEditor
+              ? [question.options[0]!, { label: '—', isCorrect: false }]
+              : question.options).map((option, optionIndex) => ({
               label: option.label.trim(),
               isCorrect: option.isCorrect,
               position: optionIndex,
             })),
-          })),
+          })) } : {}),
         };
         const updated = await assessmentsService.update(
           editingAssessment.id,
           payload,
         );
+        let updatedWithFiles = updated;
+        if (pdfExercise && form.exercisePdfFile) {
+          const file = await assessmentsService.uploadExerciseFile(updated.id, 'EXERCISE', form.exercisePdfFile);
+          updatedWithFiles = { ...updatedWithFiles, exercisePdfName: file.name };
+        }
+        if (pdfExercise && form.correctionPdfFile) {
+          const file = await assessmentsService.uploadExerciseFile(updated.id, 'CORRECTION', form.correctionPdfFile);
+          updatedWithFiles = { ...updatedWithFiles, correctionPdfName: file.name };
+        }
         setAssessments((current) =>
           current.map((item) =>
             item.id === updated.id
               ? {
                   ...item,
-                  ...updated,
-                  questions: updated.questions ?? item.questions,
-                  _count: updated._count ?? item._count,
+                  ...updatedWithFiles,
+                  questions: updatedWithFiles.questions ?? item.questions,
+                  _count: updatedWithFiles._count ?? item._count,
                 }
               : item,
           ),
@@ -541,6 +583,7 @@ export default function AssessmentsPage({
           return;
         }
         const payload: CreateAssessmentDto = {
+          ...(newKind === 'EXERCICE' ? { exerciseFormat: form.exerciseFormat } : {}),
           title,
           instructions: form.instructions.trim(),
           durationSeconds:
@@ -549,25 +592,43 @@ export default function AssessmentsPage({
               : Math.round(durationMinutes * 60),
           passingPercent: passingPercent ?? undefined,
           position: position - 1,
-          questions: form.questions.map((question, questionIndex) => ({
+          ...(!pdfExercise ? { questions: form.questions.map((question, questionIndex) => ({
             type: question.type,
             statement: question.statement.trim(),
             explanation: question.explanation.trim() || undefined,
             points: Number(question.points),
             position: questionIndex,
-            options: question.options.map((option, optionIndex) => ({
+            options: (exerciseEditor
+              ? [question.options[0]!, { label: '—', isCorrect: false }]
+              : question.options).map((option, optionIndex) => ({
               label: option.label.trim(),
               isCorrect: option.isCorrect,
               position: optionIndex,
             })),
-          })),
+          })) } : {}),
         };
         const created = await assessmentsService.create(
           selectedChapterId,
           newKind,
           payload,
         );
+        if (pdfExercise) {
+          setEditingAssessment(created);
+          setAssessments((current) => [...current, created]);
+          let createdWithFiles = created;
+          if (form.exercisePdfFile) {
+            const file = await assessmentsService.uploadExerciseFile(created.id, 'EXERCISE', form.exercisePdfFile);
+            createdWithFiles = { ...createdWithFiles, exercisePdfName: file.name };
+          }
+          if (form.correctionPdfFile) {
+            const file = await assessmentsService.uploadExerciseFile(created.id, 'CORRECTION', form.correctionPdfFile);
+            createdWithFiles = { ...createdWithFiles, correctionPdfName: file.name };
+          }
+          setEditingAssessment(createdWithFiles);
+          setAssessments((current) => current.map(item => item.id === created.id ? createdWithFiles : item));
+        } else {
         setAssessments((current) => [...current, created]);
+        }
         setSuccessMessage(
           newKind === 'QUIZ'
             ? `Le quiz « ${created.title} » a été créé en brouillon.`
@@ -798,8 +859,9 @@ export default function AssessmentsPage({
                         <div>
                           <strong>{assessment.title}</strong>
                           <small>
-                            {kindLabels[assessment.kind]} · {assessment.questions.length}{' '}
-                            {assessment.questions.length === 1 ? 'question' : 'questions'}
+                            {kindLabels[assessment.kind]} · {assessment.kind === 'EXERCICE' && assessment.exerciseFormat === 'PDF'
+                              ? 'PDF'
+                              : `${assessment.questions.length} ${assessment.questions.length === 1 ? 'question' : 'questions'}`}
                           </small>
                         </div>
                       </div>
@@ -908,7 +970,7 @@ export default function AssessmentsPage({
                 {selectedChapter
                   ? `${selectedChapter.title} · ${getChapterContext(selectedChapter)}`
                   : 'Sélectionnez un chapitre'}
-                {' · '}{form.questions.length} question(s)
+                {' · '}{pdfExerciseMode ? 'Énoncé et correction PDF' : `${form.questions.length} question(s)`}
               </p>
             </div>
             <div className="courses-header-actions">
@@ -958,6 +1020,13 @@ export default function AssessmentsPage({
               <aside className="assessment-editor-sidebar">
                 <section className="courses-card assessment-settings">
                   <h2>Paramètres</h2>
+                  {exerciseEditorMode && <div className="field">
+                    <span>Format de l’exercice</span>
+                    <div className="exercise-format-choice" role="group" aria-label="Format de l’exercice">
+                      <button type="button" className={form.exerciseFormat === 'TEXTE' ? 'is-active' : ''} onClick={() => setForm(current => ({ ...current, exerciseFormat: 'TEXTE' }))}>Texte</button>
+                      <button type="button" className={form.exerciseFormat === 'PDF' ? 'is-active' : ''} onClick={() => setForm(current => ({ ...current, exerciseFormat: 'PDF' }))}>PDF</button>
+                    </div>
+                  </div>}
                   <label className="field">
                     <span>Titre</span>
                     <input
@@ -1037,7 +1106,7 @@ export default function AssessmentsPage({
                   </label>
                 </section>
 
-                <section className="courses-card quiz-list">
+                {!pdfExerciseMode && <section className="courses-card quiz-list">
                   <div className="assessment-questions-heading">
                     <div>
                       <h2>Questions</h2>
@@ -1063,14 +1132,27 @@ export default function AssessmentsPage({
                         <strong>
                           {question.statement.trim() || 'Question sans titre'}
                         </strong>
-                        <small>{questionTypeLabels[question.type]}</small>
+                        <small>{(editingAssessment?.kind ?? newKind) === 'EXERCICE' ? 'Réponse libre' : questionTypeLabels[question.type]}</small>
                       </span>
                     </button>
                   ))}
-                </section>
+                </section>}
               </aside>
 
-              {activeQuestion && (
+              {pdfExerciseMode ? <section className="courses-card exercise-pdf-editor">
+                <h2>Documents PDF de l’exercice</h2>
+                <p>Les élèves liront l’énoncé, feront l’exercice dans leur cahier, puis ouvriront la correction PDF.</p>
+                <label className="field">
+                  <span>PDF de l’énoncé</span>
+                  <input type="file" accept="application/pdf,.pdf" onChange={event => setForm(current => ({ ...current, exercisePdfFile: event.target.files?.[0] ?? null }))} />
+                  <small>{form.exercisePdfFile?.name ?? editingAssessment?.exercisePdfName ?? 'Aucun fichier sélectionné'}</small>
+                </label>
+                <label className="field">
+                  <span>PDF de correction</span>
+                  <input type="file" accept="application/pdf,.pdf" onChange={event => setForm(current => ({ ...current, correctionPdfFile: event.target.files?.[0] ?? null }))} />
+                  <small>{form.correctionPdfFile?.name ?? editingAssessment?.correctionPdfName ?? 'Aucun fichier sélectionné'}</small>
+                </label>
+              </section> : activeQuestion && (
                 <section className="courses-card quiz-edit assessment-question-workspace">
                   <div className="assessment-question-heading">
                     <div>
@@ -1104,7 +1186,7 @@ export default function AssessmentsPage({
                     />
                   </label>
 
-                  <div className="assessment-question-controls">
+                  {(editingAssessment?.kind ?? newKind) !== 'EXERCICE' && <div className="assessment-question-controls">
                     <div className="segmented" aria-label="Type de question">
                       {Object.entries(questionTypeLabels).map(([type, label]) => (
                         <button
@@ -1137,9 +1219,27 @@ export default function AssessmentsPage({
                         required
                       />
                     </label>
-                  </div>
+                  </div>}
 
-                  <div className="assessment-options">
+                  {(editingAssessment?.kind ?? newKind) === 'EXERCICE' ? (
+                    <label className="field assessment-free-response">
+                      <span>Réponse attendue</span>
+                      <textarea
+                        value={activeQuestion.options[0]?.label ?? ''}
+                        onChange={(event) =>
+                          updateQuestion(activeQuestionIndex, {
+                            options: [
+                              { label: event.target.value, isCorrect: true },
+                              ...activeQuestion.options.slice(1),
+                            ],
+                          })
+                        }
+                        rows={5}
+                        placeholder="Saisissez la réponse ou les éléments de réponse attendus…"
+                        required
+                      />
+                    </label>
+                  ) : <div className="assessment-options">
                     <div className="assessment-options-heading">
                       <strong>Réponses</strong>
                       <span>
@@ -1218,7 +1318,7 @@ export default function AssessmentsPage({
                           </button>
                         )}
                     </div>
-                  </div>
+                  </div>}
 
                   <label className="field">
                     <span>Explication après correction</span>
@@ -1275,12 +1375,18 @@ export default function AssessmentsPage({
           onClose={() => setViewingAssessment(null)}
         >
           <div className="assessment-preview">
+            {viewingAssessment.kind === 'EXERCICE' && viewingAssessment.exerciseFormat === 'PDF' && (
+              <section className="exercise-pdf-preview">
+                <p>Énoncé : {viewingAssessment.exercisePdfName ?? 'PDF manquant'}</p>
+                <p>Correction : {viewingAssessment.correctionPdfName ?? 'PDF manquant'}</p>
+              </section>
+            )}
             {viewingAssessment.instructions && (
               <p className="assessment-preview-instructions">
                 {viewingAssessment.instructions}
               </p>
             )}
-            {viewingAssessment.questions.length === 0 ? (
+            {viewingAssessment.kind === 'EXERCICE' && viewingAssessment.exerciseFormat === 'PDF' ? null : viewingAssessment.questions.length === 0 ? (
               <p className="assessments-empty">
                 Cette évaluation ne contient pas encore de question.
               </p>
@@ -1295,7 +1401,12 @@ export default function AssessmentsPage({
                       {question.points} pt · {questionTypeLabels[question.type]}
                     </span>
                   </div>
-                  <ul>
+                  {viewingAssessment.kind === 'EXERCICE' ? (
+                    <div className="assessment-preview-answer">
+                      <strong>Réponse attendue</strong>
+                      <p>{question.options.find((option) => option.isCorrect)?.label}</p>
+                    </div>
+                  ) : <ul>
                     {question.options.map((option) => (
                       <li
                         className={
@@ -1309,7 +1420,7 @@ export default function AssessmentsPage({
                         {option.isCorrect && <strong> · Bonne réponse</strong>}
                       </li>
                     ))}
-                  </ul>
+                  </ul>}
                   {question.explanation && (
                     <p className="assessment-preview-explanation">
                       Explication : {question.explanation}

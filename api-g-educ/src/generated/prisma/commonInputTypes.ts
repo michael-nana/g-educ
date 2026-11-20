@@ -467,6 +467,13 @@ export type EnumAssessmentKindFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumAssessmentKindFilter<$PrismaModel> | $Enums.AssessmentKind
 }
 
+export type EnumExerciseFormatFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExerciseFormat | Prisma.EnumExerciseFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExerciseFormatFilter<$PrismaModel> | $Enums.ExerciseFormat
+}
+
 export type EnumAssessmentKindWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.AssessmentKind | Prisma.EnumAssessmentKindFieldRefInput<$PrismaModel>
   in?: $Enums.AssessmentKind[] | Prisma.ListEnumAssessmentKindFieldRefInput<$PrismaModel>
@@ -475,6 +482,16 @@ export type EnumAssessmentKindWithAggregatesFilter<$PrismaModel = never> = {
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAssessmentKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAssessmentKindFilter<$PrismaModel>
+}
+
+export type EnumExerciseFormatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExerciseFormat | Prisma.EnumExerciseFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExerciseFormatWithAggregatesFilter<$PrismaModel> | $Enums.ExerciseFormat
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExerciseFormatFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExerciseFormatFilter<$PrismaModel>
 }
 
 export type EnumQuestionTypeFilter<$PrismaModel = never> = {
@@ -1299,6 +1316,13 @@ export type NestedEnumAssessmentKindFilter<$PrismaModel = never> = {
   not?: Prisma.NestedEnumAssessmentKindFilter<$PrismaModel> | $Enums.AssessmentKind
 }
 
+export type NestedEnumExerciseFormatFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExerciseFormat | Prisma.EnumExerciseFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExerciseFormatFilter<$PrismaModel> | $Enums.ExerciseFormat
+}
+
 export type NestedEnumAssessmentKindWithAggregatesFilter<$PrismaModel = never> = {
   equals?: $Enums.AssessmentKind | Prisma.EnumAssessmentKindFieldRefInput<$PrismaModel>
   in?: $Enums.AssessmentKind[] | Prisma.ListEnumAssessmentKindFieldRefInput<$PrismaModel>
@@ -1307,6 +1331,16 @@ export type NestedEnumAssessmentKindWithAggregatesFilter<$PrismaModel = never> =
   _count?: Prisma.NestedIntFilter<$PrismaModel>
   _min?: Prisma.NestedEnumAssessmentKindFilter<$PrismaModel>
   _max?: Prisma.NestedEnumAssessmentKindFilter<$PrismaModel>
+}
+
+export type NestedEnumExerciseFormatWithAggregatesFilter<$PrismaModel = never> = {
+  equals?: $Enums.ExerciseFormat | Prisma.EnumExerciseFormatFieldRefInput<$PrismaModel>
+  in?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  notIn?: $Enums.ExerciseFormat[] | Prisma.ListEnumExerciseFormatFieldRefInput<$PrismaModel>
+  not?: Prisma.NestedEnumExerciseFormatWithAggregatesFilter<$PrismaModel> | $Enums.ExerciseFormat
+  _count?: Prisma.NestedIntFilter<$PrismaModel>
+  _min?: Prisma.NestedEnumExerciseFormatFilter<$PrismaModel>
+  _max?: Prisma.NestedEnumExerciseFormatFilter<$PrismaModel>
 }
 
 export type NestedEnumQuestionTypeFilter<$PrismaModel = never> = {

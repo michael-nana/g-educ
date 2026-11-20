@@ -3479,6 +3479,7 @@ export const LessonScalarFieldEnum = {
   title: 'title',
   type: 'type',
   contentMarkdown: 'contentMarkdown',
+  videoUrl: 'videoUrl',
   durationSeconds: 'durationSeconds',
   position: 'position',
   status: 'status',
@@ -3536,6 +3537,11 @@ export const AssessmentScalarFieldEnum = {
   chapterId: 'chapterId',
   classId: 'classId',
   kind: 'kind',
+  exerciseFormat: 'exerciseFormat',
+  exercisePdfKey: 'exercisePdfKey',
+  exercisePdfName: 'exercisePdfName',
+  correctionPdfKey: 'correctionPdfKey',
+  correctionPdfName: 'correctionPdfName',
   title: 'title',
   instructions: 'instructions',
   durationSeconds: 'durationSeconds',
@@ -3602,6 +3608,7 @@ export const AttemptAnswerScalarFieldEnum = {
   questionId: 'questionId',
   isCorrect: 'isCorrect',
   pointsAwarded: 'pointsAwarded',
+  responseText: 'responseText',
   answeredAt: 'answeredAt'
 } as const
 
@@ -4139,6 +4146,20 @@ export type EnumAssessmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$P
  * Reference to a field of type 'AssessmentKind[]'
  */
 export type ListEnumAssessmentKindFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'AssessmentKind[]'>
+    
+
+
+/**
+ * Reference to a field of type 'ExerciseFormat'
+ */
+export type EnumExerciseFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExerciseFormat'>
+    
+
+
+/**
+ * Reference to a field of type 'ExerciseFormat[]'
+ */
+export type ListEnumExerciseFormatFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'ExerciseFormat[]'>
     
 
 

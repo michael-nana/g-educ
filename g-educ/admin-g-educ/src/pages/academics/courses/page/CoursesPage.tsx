@@ -34,6 +34,7 @@ interface LessonForm {
   title: string;
   type: LessonType;
   contentMarkdown: string;
+  videoUrl: string;
   position: string;
 }
 const emptyForm: LessonForm = {
@@ -41,6 +42,7 @@ const emptyForm: LessonForm = {
   title: '',
   type: 'TEXTE',
   contentMarkdown: '',
+  videoUrl: '',
   position: '1',
 };
 
@@ -60,6 +62,7 @@ function getErrorMessage(error: unknown): string {
 }
 
 const formatFileSize = (b: number) => `${(b / (1024 * 1024)).toFixed(2)} Mo`;
+const MAX_VIDEO_SIZE = 100 * 1024 * 1024;
 
 function getChapterLabel(c: Chapter): string {
   return `${c.classSubject.class.label} (${c.classSubject.class.code}) · ${c.classSubject.subject.name} · ${c.title}`;
@@ -85,6 +88,8 @@ export default function CoursesPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [uploadingPdf, setUploadingPdf] = useState(false);
   const [selectedPdf, setSelectedPdf] = useState<File | null>(null);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
   const [lessonAction, setLessonAction] = useState<LessonAction | null>(null);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
@@ -169,6 +174,7 @@ export default function CoursesPage() {
     });
     setSelectedLesson(null);
     setSelectedPdf(null);
+    setSelectedVideo(null);
     setFormOpen(true);
     resetMessages();
   };
@@ -186,9 +192,11 @@ export default function CoursesPage() {
         title: d.title,
         type: d.type,
         contentMarkdown: d.contentMarkdown ?? '',
+        videoUrl: d.videoUrl ?? '',
         position: String(d.position + 1),
       });
       setSelectedPdf(null);
+      setSelectedVideo(null);
     } catch (err) {
       setError(getErrorMessage(err));
       setFormOpen(false);
@@ -201,6 +209,7 @@ export default function CoursesPage() {
     setFormOpen(false);
     setSelectedLesson(null);
     setSelectedPdf(null);
+    setSelectedVideo(null);
     setForm(emptyForm);
     resetMessages();
   };
@@ -229,6 +238,9 @@ export default function CoursesPage() {
           title,
           position: order - 1,
           ...(form.type === 'TEXTE' && { contentMarkdown: form.contentMarkdown }),
+          ...(form.type === 'VIDEO' && !selectedVideo && {
+            videoUrl: form.videoUrl.trim() || null,
+          }),
         };
         const updated = await lessonsService.update(selectedLesson.id, payload);
         lessonId = updated.id;
@@ -239,6 +251,9 @@ export default function CoursesPage() {
           type: form.type,
           position: order - 1,
           ...(form.type === 'TEXTE' && { contentMarkdown: form.contentMarkdown }),
+          ...(form.type === 'VIDEO' && !selectedVideo && form.videoUrl.trim() && {
+            videoUrl: form.videoUrl.trim(),
+          }),
         };
         const created = await lessonsService.create(form.chapterId, payload);
         lessonWasCreated = true;
@@ -260,6 +275,19 @@ export default function CoursesPage() {
         setSelectedLesson(await lessonsService.findOne(lessonId));
         setSelectedPdf(null);
         setSuccessMessage('La leçon et son fichier PDF ont été enregistrés.');
+      } else if (form.type === 'VIDEO' && selectedVideo) {
+        setUploadingVideo(true);
+        try {
+          await lessonsService.uploadVideo(lessonId, selectedVideo);
+        } catch (uploadError) {
+          setError(
+            `${lessonWasCreated ? 'Le brouillon a été créé, mais' : 'La leçon a été enregistrée, mais'} le téléversement vidéo a échoué : ${getErrorMessage(uploadError)}`,
+          );
+          return;
+        }
+        setSelectedLesson(await lessonsService.findOne(lessonId));
+        setSelectedVideo(null);
+        setSuccessMessage('La leçon et sa vidéo ont été enregistrées.');
       } else {
         setSuccessMessage(
           form.type === 'PDF' && !selectedLesson
@@ -272,6 +300,7 @@ export default function CoursesPage() {
       setError(getErrorMessage(err));
     } finally {
       setUploadingPdf(false);
+      setUploadingVideo(false);
       setSaving(false);
     }
   };
@@ -306,7 +335,7 @@ export default function CoursesPage() {
     }
   };
 
-  const busy = saving || uploadingPdf || processingId !== null;
+  const busy = saving || uploadingPdf || uploadingVideo || processingId !== null;
   const currentChapter = chaptersById.get(selectedLesson?.chapterId ?? form.chapterId);
   const pdfEditable = !selectedLesson || selectedLesson.status === 'BROUILLON';
 
@@ -343,9 +372,9 @@ export default function CoursesPage() {
           </button>
           <button type="submit" form="lesson-form"
             className="courses-button courses-button-secondary"
-            disabled={busy || loadingDetails || form.type === 'VIDEO'}>
-            {uploadingPdf ? 'Téléversement...' : saving ? 'Enregistrement...'
-              : selectedPdf ? 'Enregistrer et téléverser' : 'Enregistrer le brouillon'}
+            disabled={busy || loadingDetails}>
+            {uploadingPdf || uploadingVideo ? 'Téléversement...' : saving ? 'Enregistrement...'
+              : selectedPdf || selectedVideo ? 'Enregistrer et téléverser' : 'Enregistrer le brouillon'}
           </button>
           {selectedLesson?.status === 'BROUILLON' && (
             <button type="button" className="courses-button courses-button-primary"
@@ -373,6 +402,7 @@ export default function CoursesPage() {
                   onClick={() => {
                     setForm((c) => ({ ...c, type: t }));
                     if (t !== 'PDF') setSelectedPdf(null);
+                    if (t !== 'VIDEO') setSelectedVideo(null);
                   }}>
                   {typeLabels[t]}
                 </button>
@@ -395,30 +425,50 @@ export default function CoursesPage() {
             )}
 
             {form.type === 'VIDEO' && (
-              <div className="video-grid">
-                <div className="video-col">
-                  <div className="video-player" aria-label="Aperçu vidéo (maquette)">
-                    <span className="video-formula">z = r(cos θ + i sin θ)</span>
-                    <span className="video-time">18:04</span>
+              <div className="courses-assets">
+                <p className="courses-context">Ajoutez une vidéo MP4 (100 Mo maximum), ou collez un lien HTTPS direct, YouTube ou Vimeo. Les élèves pourront la lire dans l’application.</p>
+                <label className="field">
+                  <span>Lien vidéo</span>
+                  <input type="url" inputMode="url" placeholder="https://…"
+                    value={form.videoUrl}
+                    onChange={(e) => {
+                      const videoUrl = e.target.value;
+                      setForm((current) => ({ ...current, videoUrl }));
+                      if (videoUrl.trim()) setSelectedVideo(null);
+                    }} />
+                  <small>Accepte une URL HTTPS YouTube, Vimeo ou un lien direct vers un fichier MP4.</small>
+                </label>
+                {selectedLesson?.videoUrl && !form.videoUrl.trim() && (
+                  <p className="courses-context">Lien vidéo actuel : <a href={selectedLesson.videoUrl} target="_blank" rel="noreferrer">Ouvrir le lien</a></p>
+                )}
+                {selectedLesson?.assets.filter((asset) => asset.kind === 'VIDEO').map((asset) => (
+                  <div className="courses-asset" key={asset.id}>
+                    <span className="asset-icon">▶</span>
+                    <a href={asset.downloadUrl} target="_blank" rel="noreferrer">Ouvrir la vidéo importée</a>
+                    <span className="asset-size">{formatFileSize(asset.sizeBytes)}</span>
                   </div>
-                  <p className="video-file"><strong>{form.title.trim() ? `${form.title.trim().toLowerCase().replace(/\s+/g, '-')}.mp4` : 'video.mp4'}</strong><small>Source 1080p · envoyée par vous</small></p>
-                  {[['240p', 'Prêt', '36 Mo'], ['360p', 'Prêt', '71 Mo'], ['480p', 'Encodage 62 %', '']].map(([q, st, size]) => (
-                    <div className="video-quality" key={q}>
-                      <span className={st.startsWith('Prêt') ? 'q-ok' : 'q-wait'}>{st.startsWith('Prêt') ? '✓' : '◌'}</span>
-                      <strong>{q}</strong><span className="muted">{st}</span><span className="muted video-size">{size}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className="video-col">
-                  <label className="field">
-                    <span>Résumé de la leçon</span>
-                    <textarea rows={12} value={form.contentMarkdown}
-                      onChange={(e) => setForm((c) => ({ ...c, contentMarkdown: e.target.value }))} />
-                  </label>
-                </div>
-                <p className="courses-phase-note video-note">
-                  Maquette : l’envoi et l’encodage vidéo seront activés avec le backend (phase 2).
-                </p>
+                ))}
+                <label className="courses-upload">
+                  <span>{selectedVideo ? 'Choisir une autre vidéo MP4' : 'Importer une vidéo MP4 · 100 Mo maximum'}</span>
+                  <input type="file" accept="video/mp4,.mp4" disabled={busy}
+                    onChange={(e) => {
+                      const file = e.target.files?.[0] ?? null;
+                      if (file && file.size > MAX_VIDEO_SIZE) {
+                        setSelectedVideo(null);
+                        setError('La vidéo ne doit pas dépasser 100 Mo.');
+                      } else {
+                        setSelectedVideo(file);
+                        if (file) setForm((current) => ({ ...current, videoUrl: '' }));
+                        setError('');
+                      }
+                      e.target.value = '';
+                    }} />
+                </label>
+                {selectedVideo && <p className="courses-pdf-selected">Vidéo sélectionnée : <strong>{selectedVideo.name}</strong> ({formatFileSize(selectedVideo.size)})</p>}
+                {!selectedLesson && <p className="courses-phase-note">Enregistrez le brouillon pour téléverser la vidéo ou conserver le lien.</p>}
+                {!selectedVideo && !form.videoUrl.trim() && selectedLesson?.assets.every((asset) => asset.kind !== 'VIDEO') && !selectedLesson?.videoUrl && (
+                  <p className="courses-phase-note">Un lien ou une vidéo MP4 est requis pour publier cette leçon.</p>
+                )}
               </div>
             )}
 
@@ -566,6 +616,9 @@ export default function CoursesPage() {
           <p>Créez et gérez les leçons des chapitres.</p>
         </div>
         <div className="courses-header-actions">
+          <a className="courses-button courses-button-secondary" href="/annals/import">
+            Importer une annale PDF
+          </a>
           <button type="button" className="courses-button courses-button-secondary"
             onClick={() => void loadData()} disabled={loading || busy}>
             Actualiser

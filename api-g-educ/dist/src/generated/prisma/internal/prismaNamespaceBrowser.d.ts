@@ -196,6 +196,7 @@ export declare const LessonScalarFieldEnum: {
     readonly title: "title";
     readonly type: "type";
     readonly contentMarkdown: "contentMarkdown";
+    readonly videoUrl: "videoUrl";
     readonly durationSeconds: "durationSeconds";
     readonly position: "position";
     readonly status: "status";
@@ -241,6 +242,11 @@ export declare const AssessmentScalarFieldEnum: {
     readonly chapterId: "chapterId";
     readonly classId: "classId";
     readonly kind: "kind";
+    readonly exerciseFormat: "exerciseFormat";
+    readonly exercisePdfKey: "exercisePdfKey";
+    readonly exercisePdfName: "exercisePdfName";
+    readonly correctionPdfKey: "correctionPdfKey";
+    readonly correctionPdfName: "correctionPdfName";
     readonly title: "title";
     readonly instructions: "instructions";
     readonly durationSeconds: "durationSeconds";
@@ -295,6 +301,7 @@ export declare const AttemptAnswerScalarFieldEnum: {
     readonly questionId: "questionId";
     readonly isCorrect: "isCorrect";
     readonly pointsAwarded: "pointsAwarded";
+    readonly responseText: "responseText";
     readonly answeredAt: "answeredAt";
 };
 export type AttemptAnswerScalarFieldEnum = (typeof AttemptAnswerScalarFieldEnum)[keyof typeof AttemptAnswerScalarFieldEnum];

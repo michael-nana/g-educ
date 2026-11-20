@@ -433,6 +433,25 @@
   line-height: 1.5;
 }
 
+.assessment-free-response textarea {
+  min-height: 120px;
+}
+
+.assessment-preview-answer {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #f8f9fb;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.assessment-preview-answer p {
+  margin: 7px 0 0;
+  color: var(--text-muted);
+  white-space: pre-wrap;
+}
+
 .assessment-editor-page {
   display: flex;
   flex-direction: column;
@@ -461,6 +480,52 @@
 
 .assessment-settings .field-title {
   font-size: 16px !important;
+}
+
+.exercise-format-choice {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.exercise-format-choice button {
+  flex: 1;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  cursor: pointer;
+}
+
+.exercise-format-choice button.is-active {
+  border-color: var(--text);
+  background: var(--text);
+  color: var(--surface);
+}
+
+.exercise-pdf-editor {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.exercise-pdf-editor h2,
+.exercise-pdf-editor p {
+  margin: 0;
+}
+
+.exercise-pdf-editor p,
+.exercise-pdf-editor small {
+  color: var(--text-muted);
+}
+
+.exercise-pdf-editor input[type='file'] {
+  display: block;
+  width: 100%;
+  margin-top: 8px;
 }
 
 .assessment-settings-grid {

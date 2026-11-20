@@ -30,6 +30,7 @@ const assessments_module_1 = require("./modules/assessments/assessments.module")
 const events_module_1 = require("./modules/events/events.module");
 const planner_module_1 = require("./modules/planner/planner.module");
 const dashboard_module_1 = require("./modules/dashboard/dashboard.module");
+const progress_module_1 = require("./modules/progress/progress.module");
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -40,7 +41,10 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 validate: environment_validation_1.validateEnvironment,
             }),
-            throttler_1.ThrottlerModule.forRoot([{ ttl: 60_000, limit: 30 }]),
+            throttler_1.ThrottlerModule.forRoot([{
+                    ttl: Number(process.env.RATE_LIMIT_TTL_MS ?? 60_000),
+                    limit: Number(process.env.RATE_LIMIT_MAX ?? 30),
+                }]),
             nestjs_cls_1.ClsModule.forRoot({
                 global: true,
                 middleware: {
@@ -65,6 +69,7 @@ exports.AppModule = AppModule = __decorate([
             events_module_1.EventsModule,
             planner_module_1.PlannerModule,
             dashboard_module_1.DashboardModule,
+            progress_module_1.ProgressModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [

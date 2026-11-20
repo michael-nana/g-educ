@@ -8,6 +8,7 @@
   "scripts": {
     "build": "nest build",
     "seed": "tsc --project tsconfig.build.json --outDir dist-seed --rootDir . --module nodenext --moduleResolution nodenext --target es2023 --skipLibCheck && node dist-seed/prisma/seed.js",
+    "seed:load-test": "npm run seed && tsc --project tsconfig.build.json --outDir dist-load-test --rootDir . --module nodenext --moduleResolution nodenext --target es2023 --skipLibCheck && node dist-load-test/prisma/load-test-seed.js",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "start:dev": "nest start --watch",
@@ -46,6 +47,7 @@
     "nestjs-cls": "^7.0.2",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
+    "pdfjs-dist": "^6.5.438",
     "pg": "^8.23.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1",

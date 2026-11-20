@@ -14,6 +14,7 @@ const class_validator_1 = require("class-validator");
 class SubmitAnswerDto {
     questionId;
     optionIds;
+    responseText;
 }
 exports.SubmitAnswerDto = SubmitAnswerDto;
 __decorate([
@@ -26,4 +27,9 @@ __decorate([
     (0, class_validator_1.IsUUID)('all', { each: true }),
     __metadata("design:type", Array)
 ], SubmitAnswerDto.prototype, "optionIds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SubmitAnswerDto.prototype, "responseText", void 0);
 //# sourceMappingURL=submit-answer.dto.js.map

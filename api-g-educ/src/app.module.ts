@@ -23,6 +23,7 @@ import { AssessmentsModule } from './modules/assessments/assessments.module';
 import { EventsModule } from './modules/events/events.module';
 import { PlannerModule } from './modules/planner/planner.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { ProgressModule } from './modules/progress/progress.module';
 
 @Module({
   imports: [
@@ -30,7 +31,10 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
       isGlobal: true,
       validate: validateEnvironment,
     }),
-    ThrottlerModule.forRoot([{ ttl: 60_000, limit: 30 }]),
+    ThrottlerModule.forRoot([{
+      ttl: Number(process.env.RATE_LIMIT_TTL_MS ?? 60_000),
+      limit: Number(process.env.RATE_LIMIT_MAX ?? 30),
+    }]),
 
     ClsModule.forRoot({
       global: true,
@@ -57,6 +61,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     EventsModule,
     PlannerModule,
     DashboardModule,
+    ProgressModule,
   ],
   controllers: [AppController],
   providers: [

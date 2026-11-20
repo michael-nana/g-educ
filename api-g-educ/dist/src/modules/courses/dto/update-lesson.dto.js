@@ -16,6 +16,7 @@ class UpdateLessonDto {
     contentMarkdown;
     position;
     durationSeconds;
+    videoUrl;
 }
 exports.UpdateLessonDto = UpdateLessonDto;
 __decorate([
@@ -42,4 +43,10 @@ __decorate([
     (0, class_validator_1.Min)(1),
     __metadata("design:type", Number)
 ], UpdateLessonDto.prototype, "durationSeconds", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsUrl)({ protocols: ['https'], require_protocol: true }),
+    (0, class_validator_1.MaxLength)(2048),
+    __metadata("design:type", Object)
+], UpdateLessonDto.prototype, "videoUrl", void 0);
 //# sourceMappingURL=update-lesson.dto.js.map

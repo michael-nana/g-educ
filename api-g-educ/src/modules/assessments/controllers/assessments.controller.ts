@@ -9,7 +9,11 @@ import {
   Patch,
   Get,
   Query,
+  UploadedFile,
+  UseInterceptors,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { memoryStorage } from 'multer';
 import { AssessmentFilterDto } from '../dto/assessment-filter.dto';
 
 import { JwtAuthGuard } from '../../auth/guards/jwt-auth.guard';
@@ -31,6 +35,30 @@ export class AssessmentsController {
   constructor(
     private readonly assessmentsService: AssessmentsService,
   ) {}
+
+  @Post('assessments/:id/files/:fileType')
+  @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+  @UseInterceptors(FileInterceptor('file', {
+    storage: memoryStorage(),
+    limits: { fileSize: 20 * 1024 * 1024 },
+  }))
+  uploadExerciseFile(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Param('fileType') fileType: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    return this.assessmentsService.uploadExerciseFile(user, id, fileType, file);
+  }
+
+  @Get('assessments/:id/correction')
+  @Roles('ELEVE')
+  getExerciseCorrection(
+    @CurrentUser() user: AuthenticatedUser,
+    @Param('id', ParseUUIDPipe) id: string,
+  ) {
+    return this.assessmentsService.getExerciseCorrection(user, id);
+  }
 
   @Post('chapters/:chapterId/exercises')
   @Roles('ADMINISTRATEUR', 'ENSEIGNANT')

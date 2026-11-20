@@ -35,6 +35,8 @@ Ce document inventorie les routes déclarées dans les contrôleurs du backend a
 | Modifier le profil élève | `PATCH /me/profile` | `ELEVE` |
 | Voir les matières de sa classe | `GET /me/subjects` | `ELEVE` |
 | Voir les chapitres de sa classe | `GET /me/chapters` | `ELEVE` — filtre facultatif `classSubjectId` |
+| Voir sa progression globale par matière et chapitre, avec les résultats des évaluations | `GET /me/progress` | `ELEVE` |
+| Voir sa progression pour une matière précise | `GET /me/progress/subjects/:classSubjectId` | `ELEVE` |
 | Demander un changement de classe | `POST /me/class-change-requests` | `ELEVE` |
 | Anonymiser / supprimer son compte | `DELETE /me` | Authentifié |
 
@@ -49,8 +51,6 @@ Ce document inventorie les routes déclarées dans les contrôleurs du backend a
 | Enregistrer la progression / position de lecture | `PUT /lessons/:id/progress` | `ELEVE` |
 | Reprendre les leçons commencées | `GET /me/progress/lessons` | `ELEVE` |
 
-**Limite actuelle :** la route d’ajout de fichier du module Courses est destinée aux PDF ; l’ajout de vidéos n’est pas encore pris en charge.
-
 ### Exercices, quiz et tentatives — Assessments
 
 | Page / action | Méthode et endpoint | Accès |
@@ -58,6 +58,8 @@ Ce document inventorie les routes déclarées dans les contrôleurs du backend a
 | Lister les évaluations publiées | `GET /assessments` | `ELEVE` — filtre facultatif `chapterId` |
 | Consulter une évaluation avant de la faire | `GET /assessments/:id` | `ELEVE` |
 | Soumettre les réponses d’une tentative et obtenir le résultat | `POST /assessments/:id/attempts` | `ELEVE` |
+| Ouvrir l’énoncé d’un exercice PDF | `GET /assessments/:id` — fournit un lien signé `exercisePdf.downloadUrl` | `ELEVE` — exercice publié |
+| Afficher la correction PDF d’un exercice | `GET /assessments/:id/correction` | `ELEVE` — lien signé émis à la demande |
 | Voir l’historique de ses tentatives | `GET /me/attempts` | `ELEVE` — filtre facultatif `assessmentId` |
 | Consulter une tentative et sa correction | `GET /me/attempts/:id` | `ELEVE` |
 
@@ -132,6 +134,9 @@ La route de fichier est actuellement dédiée à l’upload PDF ; l’upload et 
 | Page / action | Méthode et endpoint | Accès |
 |---|---|---|
 | Créer un exercice avec ses questions | `POST /chapters/:chapterId/exercises` | `ADMINISTRATEUR`, `ENSEIGNANT` |
+| Choisir un exercice texte ou PDF | `exerciseFormat: TEXTE` (défaut) ou `PDF` dans la création / mise à jour | `PDF` exige un énoncé et une correction |
+| Envoyer/remplacer le PDF de l’énoncé | `POST /assessments/:id/files/EXERCISE` — multipart `file` | `ADMINISTRATEUR`, `ENSEIGNANT` — brouillon |
+| Envoyer/remplacer le PDF de correction | `POST /assessments/:id/files/CORRECTION` — multipart `file` | `ADMINISTRATEUR`, `ENSEIGNANT` — brouillon |
 | Créer un quiz avec ses questions | `POST /chapters/:chapterId/quizzes` | `ADMINISTRATEUR`, `ENSEIGNANT` |
 | Modifier une évaluation | `PATCH /assessments/:id` | `ADMINISTRATEUR`, `ENSEIGNANT` |
 | Publier une évaluation | `POST /assessments/:id/publish` | `ADMINISTRATEUR`, `ENSEIGNANT` |
@@ -180,7 +185,6 @@ La route de fichier est actuellement dédiée à l’upload PDF ; l’upload et 
 
 Les contrôleurs inspectés ne présentent pas encore de routes pour :
 
-- le tableau de bord global de progression (`Progress`) : par exemple `GET /me/progress` et `GET /me/progress/subjects/:classSubjectId` ;
 - la synchronisation hors-ligne (`Sync`) ;
 - la liste et la modération des contributions des élèves (le tableau de bord expose uniquement leur nombre en attente) ;
 - le forum ;

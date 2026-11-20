@@ -14,6 +14,8 @@ var __param = (this && this.__param) || function (paramIndex, decorator) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssessmentsController = void 0;
 const common_1 = require("@nestjs/common");
+const platform_express_1 = require("@nestjs/platform-express");
+const multer_1 = require("multer");
 const assessment_filter_dto_1 = require("../dto/assessment-filter.dto");
 const jwt_auth_guard_1 = require("../../auth/guards/jwt-auth.guard");
 const roles_guard_1 = require("../../auth/guards/roles.guard");
@@ -28,6 +30,12 @@ let AssessmentsController = class AssessmentsController {
     assessmentsService;
     constructor(assessmentsService) {
         this.assessmentsService = assessmentsService;
+    }
+    uploadExerciseFile(user, id, fileType, file) {
+        return this.assessmentsService.uploadExerciseFile(user, id, fileType, file);
+    }
+    getExerciseCorrection(user, id) {
+        return this.assessmentsService.getExerciseCorrection(user, id);
     }
     createExercise(user, chapterId, dto) {
         return this.assessmentsService.create(user, chapterId, dto, 'EXERCICE');
@@ -64,6 +72,30 @@ let AssessmentsController = class AssessmentsController {
     }
 };
 exports.AssessmentsController = AssessmentsController;
+__decorate([
+    (0, common_1.Post)('assessments/:id/files/:fileType'),
+    (0, roles_decorator_1.Roles)('ADMINISTRATEUR', 'ENSEIGNANT'),
+    (0, common_1.UseInterceptors)((0, platform_express_1.FileInterceptor)('file', {
+        storage: (0, multer_1.memoryStorage)(),
+        limits: { fileSize: 20 * 1024 * 1024 },
+    })),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(2, (0, common_1.Param)('fileType')),
+    __param(3, (0, common_1.UploadedFile)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String, String, Object]),
+    __metadata("design:returntype", void 0)
+], AssessmentsController.prototype, "uploadExerciseFile", null);
+__decorate([
+    (0, common_1.Get)('assessments/:id/correction'),
+    (0, roles_decorator_1.Roles)('ELEVE'),
+    __param(0, (0, current_user_decorator_1.CurrentUser)()),
+    __param(1, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:returntype", void 0)
+], AssessmentsController.prototype, "getExerciseCorrection", null);
 __decorate([
     (0, common_1.Post)('chapters/:chapterId/exercises'),
     (0, roles_decorator_1.Roles)('ADMINISTRATEUR', 'ENSEIGNANT'),

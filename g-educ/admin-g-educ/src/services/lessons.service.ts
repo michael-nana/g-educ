@@ -40,6 +40,14 @@ export const lessonsService = {
     });
   },
 
+  async uploadVideo(id: string, file: File): Promise<void> {
+    const payload = new FormData();
+    payload.append('file', file);
+    await api.post(`/lessons/${id}/video`, payload, {
+      headers: { 'Content-Type': undefined },
+    });
+  },
+
   async deleteAsset(lessonId: string, assetId: string): Promise<void> {
     await api.delete(`/lessons/${lessonId}/assets/${assetId}`);
   },

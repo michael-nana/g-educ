@@ -20,6 +20,7 @@ export declare class LessonsController {
         chapterId: string;
         type: import("../../../generated/prisma/enums").LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
@@ -37,10 +38,23 @@ export declare class LessonsController {
         chapterId: string;
         type: import("../../../generated/prisma/enums").LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
     uploadAsset(user: any, id: string, file: Express.Multer.File): Promise<{
+        id: string;
+        createdAt: Date;
+        durationSeconds: number | null;
+        lessonId: string;
+        kind: import("../../../generated/prisma/enums").AssetKind;
+        quality: import("../../../generated/prisma/enums").VideoQuality | null;
+        storageKey: string;
+        mimeType: string;
+        sizeBytes: number;
+        processingStatus: import("../../../generated/prisma/enums").AssetProcessingStatus;
+    }>;
+    uploadVideo(user: any, id: string, file: Express.Multer.File): Promise<{
         id: string;
         createdAt: Date;
         durationSeconds: number | null;
@@ -69,6 +83,7 @@ export declare class LessonsController {
         chapterId: string;
         type: import("../../../generated/prisma/enums").LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
@@ -86,10 +101,16 @@ export declare class LessonsController {
         chapterId: string;
         type: import("../../../generated/prisma/enums").LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
     findAll(user: any, filters: LessonFilterDto): Promise<{
+        myProgress: {
+            progressPercent: number;
+            lastPositionSeconds: number | null;
+            completedAt: Date | null;
+        };
         id: string;
         createdAt: Date;
         position: number;
@@ -101,14 +122,14 @@ export declare class LessonsController {
         chapterId: string;
         type: import("../../../generated/prisma/enums").LessonType;
         durationSeconds: number | null;
+        _count: {
+            assets: number;
+        };
         chapter: {
             id: string;
             classSubjectId: string;
             status: import("../../../generated/prisma/enums").ContentStatus;
             title: string;
-        };
-        _count: {
-            assets: number;
         };
     }[]>;
     findOne(user: any, id: string): Promise<{
@@ -117,6 +138,7 @@ export declare class LessonsController {
         title: string;
         type: import("../../../generated/prisma/enums").LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         position: number;
         status: import("../../../generated/prisma/enums").ContentStatus;
@@ -193,6 +215,7 @@ export declare class LessonsController {
             durationSeconds: number | null;
             chapter: {
                 id: string;
+                classSubjectId: string;
                 title: string;
             };
         };

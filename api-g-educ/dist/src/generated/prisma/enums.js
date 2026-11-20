@@ -1,6 +1,6 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.OtpPurpose = exports.RequestStatus = exports.SanctionType = exports.ReportStatus = exports.ReportReason = exports.ForumStatus = exports.ContributionStatus = exports.ActivityRefType = exports.ActivityType = exports.DevicePlatform = exports.NotificationType = exports.ReminderStatus = exports.EventType = exports.Recurrence = exports.AttemptStatus = exports.QuestionType = exports.AssessmentKind = exports.AssetProcessingStatus = exports.VideoQuality = exports.AssetKind = exports.LessonType = exports.ContentStatus = exports.ClassSeries = exports.ClassLevel = exports.SchoolCycle = exports.UserStatus = exports.Role = void 0;
+exports.OtpPurpose = exports.RequestStatus = exports.SanctionType = exports.ReportStatus = exports.ReportReason = exports.ForumStatus = exports.ContributionStatus = exports.ActivityRefType = exports.ActivityType = exports.DevicePlatform = exports.NotificationType = exports.ReminderStatus = exports.EventType = exports.Recurrence = exports.AttemptStatus = exports.QuestionType = exports.ExerciseFormat = exports.AssessmentKind = exports.AssetProcessingStatus = exports.VideoQuality = exports.AssetKind = exports.LessonType = exports.ContentStatus = exports.ClassSeries = exports.ClassLevel = exports.SchoolCycle = exports.UserStatus = exports.Role = void 0;
 exports.Role = {
     ELEVE: 'ELEVE',
     ENSEIGNANT: 'ENSEIGNANT',
@@ -59,6 +59,10 @@ exports.AssetProcessingStatus = {
 exports.AssessmentKind = {
     EXERCICE: 'EXERCICE',
     QUIZ: 'QUIZ'
+};
+exports.ExerciseFormat = {
+    TEXTE: 'TEXTE',
+    PDF: 'PDF'
 };
 exports.QuestionType = {
     QCM_UNIQUE: 'QCM_UNIQUE',

@@ -2,6 +2,8 @@ import {
   ArrayUnique,
   IsArray,
   IsUUID,
+  IsOptional,
+  IsString,
 } from 'class-validator';
 
 export class SubmitAnswerDto {
@@ -12,4 +14,8 @@ export class SubmitAnswerDto {
   @ArrayUnique()
   @IsUUID('all', { each: true })
   optionIds!: string[];
+
+  @IsOptional()
+  @IsString()
+  responseText?: string;
 }

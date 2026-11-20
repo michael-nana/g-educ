@@ -4,6 +4,11 @@ export declare class MeSubjectsController {
     private readonly meSubjectsService;
     constructor(meSubjectsService: MeSubjectsService);
     findMySubjects(user: AuthenticatedUser): Promise<{
+        progressPercent: number;
+        completedLessons: number;
+        totalLessons: number;
+        totalChapters: number;
+        trackedLessons: number;
         id: string;
         position: number;
         coefficient: number | null;

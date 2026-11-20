@@ -42,6 +42,7 @@ export interface LessonDetails {
   title: string;
   type: LessonType;
   contentMarkdown: string | null;
+  videoUrl: string | null;
   durationSeconds: number | null;
   position: number;
   status: LessonStatus;
@@ -57,6 +58,7 @@ export interface CreateLessonDto {
   contentMarkdown?: string;
   position?: number;
   durationSeconds?: number;
+  videoUrl?: string;
 }
 
 export interface UpdateLessonDto {
@@ -64,4 +66,5 @@ export interface UpdateLessonDto {
   contentMarkdown?: string;
   position?: number;
   durationSeconds?: number;
+  videoUrl?: string | null;
 }

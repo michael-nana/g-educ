@@ -11,22 +11,96 @@ var __metadata = (this && this.__metadata) || function (k, v) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.AssessmentsService = void 0;
 const common_1 = require("@nestjs/common");
+const crypto_1 = require("crypto");
+const file_type_1 = require("file-type");
 const prisma_service_1 = require("../../../prisma/prisma.service");
 const audit_service_1 = require("../../audit/services/audit.service");
 const audit_actions_constants_1 = require("../../audit/constants/audit-actions.constants");
 const teacher_scope_service_1 = require("../../academics/services/teacher-scope.service");
 const common_2 = require("@nestjs/common");
 const gamification_service_1 = require("../../gamification/services/gamification.service");
+const upload_service_1 = require("../../../common/upload/upload.service");
 let AssessmentsService = class AssessmentsService {
     prisma;
     auditService;
     teacherScope;
     gamificationService;
-    constructor(prisma, auditService, teacherScope, gamificationService) {
+    uploadService;
+    constructor(prisma, auditService, teacherScope, gamificationService, uploadService) {
         this.prisma = prisma;
         this.auditService = auditService;
         this.teacherScope = teacherScope;
         this.gamificationService = gamificationService;
+        this.uploadService = uploadService;
+    }
+    async uploadExerciseFile(user, assessmentId, fileType, file) {
+        if (!['EXERCISE', 'CORRECTION'].includes(fileType)) {
+            throw new common_1.BadRequestException('Type de fichier invalide');
+        }
+        if (!file?.buffer?.length) {
+            throw new common_1.BadRequestException('Sélectionnez un fichier PDF');
+        }
+        if (file.size > 20 * 1024 * 1024) {
+            throw new common_1.BadRequestException('Le PDF ne doit pas dépasser 20 Mo');
+        }
+        const detected = await (0, file_type_1.fileTypeFromBuffer)(file.buffer);
+        if (detected?.mime !== 'application/pdf') {
+            throw new common_1.BadRequestException('Le fichier sélectionné n’est pas un PDF valide');
+        }
+        const assessment = await this.prisma.assessment.findUnique({
+            where: { id: assessmentId },
+            include: { chapter: { select: { classSubjectId: true } } },
+        });
+        if (!assessment)
+            throw new common_1.NotFoundException('Évaluation introuvable');
+        await this.teacherScope.assertCanManage(user, assessment.chapter.classSubjectId);
+        if (assessment.kind !== 'EXERCICE' || assessment.exerciseFormat !== 'PDF') {
+            throw new common_1.BadRequestException('Ces fichiers sont réservés aux exercices PDF');
+        }
+        if (assessment.status !== 'BROUILLON') {
+            throw new common_1.BadRequestException('Seuls les brouillons peuvent recevoir des fichiers');
+        }
+        const key = `assessments/${assessment.classId}/${assessment.id}/${fileType.toLowerCase()}/${(0, crypto_1.randomUUID)()}.pdf`;
+        const name = file.originalname.replace(/[\\/:*?"<>|]/g, '_').trim().slice(0, 200) || 'document.pdf';
+        await this.uploadService.uploadFile({ storageKey: key, buffer: file.buffer, mimeType: 'application/pdf' });
+        const oldKey = fileType === 'EXERCISE' ? assessment.exercisePdfKey : assessment.correctionPdfKey;
+        try {
+            await this.prisma.assessment.update({
+                where: { id: assessmentId },
+                data: fileType === 'EXERCISE'
+                    ? { exercisePdfKey: key, exercisePdfName: name }
+                    : { correctionPdfKey: key, correctionPdfName: name },
+            });
+        }
+        catch (error) {
+            await this.uploadService.deleteFile(key).catch(() => undefined);
+            throw error;
+        }
+        if (oldKey)
+            await this.uploadService.deleteFile(oldKey).catch(() => undefined);
+        return { fileType, name };
+    }
+    async getExerciseCorrection(user, assessmentId) {
+        if (user.role !== 'ELEVE' || !user.classId) {
+            throw new common_1.ForbiddenException('Cette correction est réservée aux élèves');
+        }
+        const assessment = await this.prisma.assessment.findFirst({
+            where: {
+                id: assessmentId,
+                classId: user.classId,
+                kind: 'EXERCICE',
+                exerciseFormat: 'PDF',
+                status: 'PUBLIE',
+                chapter: { status: 'PUBLIE' },
+            },
+            select: { correctionPdfKey: true, correctionPdfName: true },
+        });
+        if (!assessment?.correctionPdfKey)
+            throw new common_1.NotFoundException('Correction introuvable');
+        return {
+            name: assessment.correctionPdfName ?? 'Correction.pdf',
+            downloadUrl: await this.uploadService.createSignedDownloadUrl(assessment.correctionPdfKey, 300),
+        };
     }
     async create(user, chapterId, dto, kind) {
         const chapter = await this.prisma.chapter.findUnique({
@@ -49,6 +123,10 @@ let AssessmentsService = class AssessmentsService {
             throw new common_1.NotFoundException('Chapitre introuvable');
         }
         const title = dto.title.trim();
+        if (kind === 'QUIZ' && dto.exerciseFormat === 'PDF') {
+            throw new common_1.BadRequestException('Les quiz doivent conserver leur format questions');
+        }
+        const exerciseFormat = kind === 'EXERCICE' ? dto.exerciseFormat ?? 'TEXTE' : 'TEXTE';
         if (!title) {
             throw new common_1.BadRequestException('Le titre de l’évaluation est obligatoire');
         }
@@ -72,6 +150,7 @@ let AssessmentsService = class AssessmentsService {
                     chapterId,
                     classId: chapter.classId,
                     kind,
+                    exerciseFormat,
                     title,
                     instructions: dto.instructions?.trim() || null,
                     durationSeconds: dto.durationSeconds ?? null,
@@ -189,11 +268,15 @@ let AssessmentsService = class AssessmentsService {
             dto.durationSeconds === undefined &&
             dto.passingPercent === undefined &&
             dto.position === undefined &&
+            dto.exerciseFormat === undefined &&
             dto.questions === undefined) {
             throw new common_1.BadRequestException('Aucune modification fournie');
         }
         if (dto.title !== undefined && !dto.title.trim()) {
             throw new common_1.BadRequestException('Le titre de l’évaluation est obligatoire');
+        }
+        if (assessment.kind === 'QUIZ' && dto.exerciseFormat === 'PDF') {
+            throw new common_1.BadRequestException('Les quiz doivent conserver leur format questions');
         }
         for (const question of dto.questions ?? []) {
             const correctCount = question.options.filter((option) => option.isCorrect).length;
@@ -223,6 +306,9 @@ let AssessmentsService = class AssessmentsService {
             }),
             ...(dto.position !== undefined && {
                 position: dto.position,
+            }),
+            ...(dto.exerciseFormat !== undefined && {
+                exerciseFormat: dto.exerciseFormat,
             }),
         };
         return this.prisma.$transaction(async (tx) => {
@@ -312,6 +398,7 @@ let AssessmentsService = class AssessmentsService {
             select: {
                 id: true,
                 kind: true,
+                exerciseFormat: true,
                 title: true,
                 instructions: true,
                 durationSeconds: true,
@@ -369,8 +456,11 @@ let AssessmentsService = class AssessmentsService {
             select: {
                 id: true,
                 kind: true,
+                exerciseFormat: true,
                 title: true,
                 instructions: true,
+                exercisePdfKey: true,
+                exercisePdfName: true,
                 durationSeconds: true,
                 passingPercent: true,
                 position: true,
@@ -422,7 +512,20 @@ let AssessmentsService = class AssessmentsService {
         if (!assessment) {
             throw new common_1.NotFoundException('Évaluation introuvable');
         }
-        return assessment;
+        const { exercisePdfKey, ...safeAssessment } = assessment;
+        return {
+            ...safeAssessment,
+            exercisePdf: exercisePdfKey && assessment.exerciseFormat === 'PDF'
+                ? {
+                    name: assessment.exercisePdfName ?? 'Exercice.pdf',
+                    downloadUrl: await this.uploadService.createSignedDownloadUrl(exercisePdfKey, 300),
+                }
+                : null,
+            questions: assessment.questions.map((question) => ({
+                ...question,
+                options: assessment.kind === 'EXERCICE' ? [] : question.options,
+            })),
+        };
     }
     async publish(user, assessmentId) {
         const assessment = await this.prisma.assessment.findUnique({
@@ -455,7 +558,12 @@ let AssessmentsService = class AssessmentsService {
         if (assessment.status !== 'BROUILLON') {
             throw new common_1.BadRequestException('Seules les évaluations en brouillon peuvent être publiées');
         }
-        if (assessment.questions.length === 0) {
+        if (assessment.kind === 'EXERCICE' && assessment.exerciseFormat === 'PDF') {
+            if (!assessment.exercisePdfKey || !assessment.correctionPdfKey) {
+                throw new common_1.BadRequestException('Ajoutez le PDF de l’exercice et son PDF de correction avant publication');
+            }
+        }
+        else if (assessment.questions.length === 0) {
             throw new common_1.BadRequestException('Une évaluation doit contenir au moins une question');
         }
         for (const question of assessment.questions) {
@@ -654,7 +762,7 @@ let AssessmentsService = class AssessmentsService {
         }
         const submittedAnswers = new Map(dto.answers.map((answer) => [
             answer.questionId,
-            answer.optionIds,
+            { optionIds: answer.optionIds, responseText: answer.responseText?.trim() ?? '' },
         ]));
         const questionIds = new Set(assessment.questions.map((question) => question.id));
         for (const answer of dto.answers) {
@@ -665,7 +773,9 @@ let AssessmentsService = class AssessmentsService {
         let score = 0;
         const maxScore = assessment.questions.reduce((total, question) => total + question.points, 0);
         const correctedAnswers = assessment.questions.map((question) => {
-            const selectedOptionIds = submittedAnswers.get(question.id) ?? [];
+            const submitted = submittedAnswers.get(question.id);
+            const selectedOptionIds = submitted?.optionIds ?? [];
+            const responseText = submitted?.responseText ?? '';
             const availableOptionIds = new Set(question.options.map((option) => option.id));
             for (const optionId of selectedOptionIds) {
                 if (!availableOptionIds.has(optionId)) {
@@ -677,13 +787,19 @@ let AssessmentsService = class AssessmentsService {
                 .map((option) => option.id);
             const selectedSet = new Set(selectedOptionIds);
             const correctSet = new Set(correctOptionIds);
-            const isCorrect = selectedSet.size === correctSet.size &&
-                [...correctSet].every((id) => selectedSet.has(id));
+            const isCorrect = assessment.kind === 'EXERCICE'
+                ? responseText.trim().toLocaleLowerCase() ===
+                    (question.options.find((option) => option.isCorrect)?.label ?? '')
+                        .trim()
+                        .toLocaleLowerCase()
+                : selectedSet.size === correctSet.size &&
+                    [...correctSet].every((id) => selectedSet.has(id));
             const pointsAwarded = isCorrect ? question.points : 0;
             score += pointsAwarded;
             return {
                 questionId: question.id,
                 selectedOptionIds,
+                responseText,
                 isCorrect,
                 pointsAwarded,
             };
@@ -713,6 +829,7 @@ let AssessmentsService = class AssessmentsService {
                             questionId: answer.questionId,
                             isCorrect: answer.isCorrect,
                             pointsAwarded: answer.pointsAwarded,
+                            responseText: answer.responseText || null,
                             answeredAt: submittedAt,
                             options: {
                                 create: answer.selectedOptionIds.map((optionId) => ({
@@ -799,6 +916,12 @@ let AssessmentsService = class AssessmentsService {
                         title: true,
                         kind: true,
                         passingPercent: true,
+                        chapter: {
+                            select: {
+                                id: true,
+                                title: true,
+                            },
+                        },
                     },
                 },
             },
@@ -848,6 +971,7 @@ let AssessmentsService = class AssessmentsService {
                         id: true,
                         isCorrect: true,
                         pointsAwarded: true,
+                        responseText: true,
                         answeredAt: true,
                         question: {
                             select: {
@@ -896,6 +1020,7 @@ exports.AssessmentsService = AssessmentsService = __decorate([
     __metadata("design:paramtypes", [prisma_service_1.PrismaService,
         audit_service_1.AuditService,
         teacher_scope_service_1.TeacherScopeService,
-        gamification_service_1.GamificationService])
+        gamification_service_1.GamificationService,
+        upload_service_1.UploadService])
 ], AssessmentsService);
 //# sourceMappingURL=assessments.service.js.map

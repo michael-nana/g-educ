@@ -3,4 +3,5 @@ export declare class UpdateLessonDto {
     contentMarkdown?: string;
     position?: number;
     durationSeconds?: number;
+    videoUrl?: string | null;
 }

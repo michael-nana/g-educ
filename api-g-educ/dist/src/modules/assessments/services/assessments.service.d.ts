@@ -6,13 +6,30 @@ import { TeacherScopeService } from '../../academics/services/teacher-scope.serv
 import { AttemptFilterDto } from '../dto/attempt-filter.dto';
 import { SubmitAttemptDto } from '../dto/submit-attempt.dto';
 import { GamificationService } from '../../gamification/services/gamification.service';
+import { UploadService } from '../../../common/upload/upload.service';
 import type { CreateAssessmentDto } from '../dto/create-assessment.dto';
 export declare class AssessmentsService {
     private readonly prisma;
     private readonly auditService;
     private readonly teacherScope;
     private readonly gamificationService;
-    constructor(prisma: PrismaService, auditService: AuditService, teacherScope: TeacherScopeService, gamificationService: GamificationService);
+    private readonly uploadService;
+    constructor(prisma: PrismaService, auditService: AuditService, teacherScope: TeacherScopeService, gamificationService: GamificationService, uploadService: UploadService);
+    uploadExerciseFile(user: {
+        id: string;
+        role: string;
+    }, assessmentId: string, fileType: string, file: Express.Multer.File): Promise<{
+        fileType: string;
+        name: string;
+    }>;
+    getExerciseCorrection(user: {
+        id: string;
+        role: string;
+        classId: string | null;
+    }, assessmentId: string): Promise<{
+        name: string;
+        downloadUrl: string;
+    }>;
     create(user: {
         id: string;
         role: string;
@@ -50,6 +67,11 @@ export declare class AssessmentsService {
         durationSeconds: number | null;
         publishedById: string | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
+        exercisePdfKey: string | null;
+        exercisePdfName: string | null;
+        correctionPdfKey: string | null;
+        correctionPdfName: string | null;
         instructions: string | null;
         passingPercent: number | null;
     }>;
@@ -93,6 +115,11 @@ export declare class AssessmentsService {
         durationSeconds: number | null;
         publishedById: string | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
+        exercisePdfKey: string | null;
+        exercisePdfName: string | null;
+        correctionPdfKey: string | null;
+        correctionPdfName: string | null;
         instructions: string | null;
         passingPercent: number | null;
     })[]>;
@@ -136,6 +163,11 @@ export declare class AssessmentsService {
         durationSeconds: number | null;
         publishedById: string | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
+        exercisePdfKey: string | null;
+        exercisePdfName: string | null;
+        correctionPdfKey: string | null;
+        correctionPdfName: string | null;
         instructions: string | null;
         passingPercent: number | null;
     }>;
@@ -151,8 +183,12 @@ export declare class AssessmentsService {
         publishedAt: Date | null;
         durationSeconds: number | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
         instructions: string | null;
         passingPercent: number | null;
+        _count: {
+            questions: number;
+        };
         chapter: {
             id: string;
             title: string;
@@ -164,9 +200,6 @@ export declare class AssessmentsService {
                     slug: string;
                 };
             };
-        };
-        _count: {
-            questions: number;
         };
     }[]>;
     findPublishedOneForStudent(user: {
@@ -174,6 +207,23 @@ export declare class AssessmentsService {
         role: string;
         classId: string | null;
     }, assessmentId: string): Promise<{
+        exercisePdf: {
+            name: string;
+            downloadUrl: string;
+        } | null;
+        questions: {
+            options: {
+                id: string;
+                label: string;
+                position: number;
+            }[];
+            id: string;
+            position: number;
+            type: import("../../../generated/prisma/enums").QuestionType;
+            statement: string;
+            imageKey: string | null;
+            points: number;
+        }[];
         id: string;
         position: number;
         title: string;
@@ -181,6 +231,8 @@ export declare class AssessmentsService {
         publishedAt: Date | null;
         durationSeconds: number | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
+        exercisePdfName: string | null;
         instructions: string | null;
         passingPercent: number | null;
         chapter: {
@@ -195,19 +247,6 @@ export declare class AssessmentsService {
                 };
             };
         };
-        questions: {
-            id: string;
-            position: number;
-            type: import("../../../generated/prisma/enums").QuestionType;
-            statement: string;
-            imageKey: string | null;
-            points: number;
-            options: {
-                id: string;
-                label: string;
-                position: number;
-            }[];
-        }[];
     }>;
     publish(user: {
         id: string;
@@ -247,6 +286,11 @@ export declare class AssessmentsService {
         durationSeconds: number | null;
         publishedById: string | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
+        exercisePdfKey: string | null;
+        exercisePdfName: string | null;
+        correctionPdfKey: string | null;
+        correctionPdfName: string | null;
         instructions: string | null;
         passingPercent: number | null;
     }>;
@@ -269,6 +313,11 @@ export declare class AssessmentsService {
         durationSeconds: number | null;
         publishedById: string | null;
         kind: import("../../../generated/prisma/enums").AssessmentKind;
+        exerciseFormat: import("../../../generated/prisma/enums").ExerciseFormat;
+        exercisePdfKey: string | null;
+        exercisePdfName: string | null;
+        correctionPdfKey: string | null;
+        correctionPdfName: string | null;
         instructions: string | null;
         passingPercent: number | null;
     }>;
@@ -302,6 +351,7 @@ export declare class AssessmentsService {
             id: string;
             isCorrect: boolean;
             pointsAwarded: number;
+            responseText: string | null;
             answeredAt: Date;
             options: {
                 option: {
@@ -344,6 +394,10 @@ export declare class AssessmentsService {
             title: string;
             kind: import("../../../generated/prisma/enums").AssessmentKind;
             passingPercent: number | null;
+            chapter: {
+                id: string;
+                title: string;
+            };
         };
     }[]>;
     findMyAttemptById(user: {
@@ -375,6 +429,7 @@ export declare class AssessmentsService {
             id: string;
             isCorrect: boolean;
             pointsAwarded: number;
+            responseText: string | null;
             answeredAt: Date;
             options: {
                 option: {

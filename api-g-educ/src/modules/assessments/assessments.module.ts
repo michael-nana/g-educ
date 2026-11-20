@@ -8,6 +8,7 @@ import { AuthModule } from '../auth/auth.module';
 import { AuditModule } from '../audit/audit.module';
 import { AcademicsModule } from '../academics/academics.module';
 import { GamificationModule } from '../gamification/gamification.module';
+import { UploadModule } from '../../common/upload/upload.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { GamificationModule } from '../gamification/gamification.module';
     AuditModule,
     AcademicsModule,
     GamificationModule,
+    UploadModule,
   ],
   controllers: [
     AssessmentsController,

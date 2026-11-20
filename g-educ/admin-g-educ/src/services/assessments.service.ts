@@ -8,6 +8,15 @@ import type {
 } from './assessments.types';
 
 export const assessmentsService = {
+  async uploadExerciseFile(id: string, fileType: 'EXERCISE' | 'CORRECTION', file: File): Promise<{ name: string }> {
+    const payload = new FormData();
+    payload.append('file', file);
+    const { data } = await api.post<{ name: string }>(`/assessments/${id}/files/${fileType}`, payload, {
+      headers: { 'Content-Type': undefined },
+    });
+    return data;
+  },
+
   async findForChapter(chapterId: string): Promise<Assessment[]> {
     const { data } = await api.get<Assessment[]>(
       `/chapters/${chapterId}/assessments`,

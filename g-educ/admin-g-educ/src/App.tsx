@@ -23,6 +23,7 @@ import ContentsPage from './pages/academics/contents/page/ContentsPage';
 import EventsPage from './pages/events/page/EventsPage';
 import NotificationsPage from './pages/notifications/page/NotificationsPage';
 import AuditPage from './pages/audit/page/AuditPage';
+import AnnalImportPage from './pages/academics/annals/AnnalImportPage';
 
 import './App.css';
 
@@ -70,6 +71,7 @@ export default function App() {
               <Route path="/class-change-requests" element={<ClassChangeRequestsPage />} />
               <Route path="/chapters" element={<Navigate to="/structure" replace />} />
               <Route path="/contents" element={<ContentsPage />} />
+              <Route path="/annals/import" element={<AnnalImportPage />} />
               <Route path="/courses" element={<Navigate to="/contents?tab=lessons" replace />} />
               <Route path="/assessments" element={<Navigate to="/contents?tab=exercise" replace />} />
               <Route path="/events" element={<EventsPage />} />

@@ -38,5 +38,11 @@ export function createS3Client(config: UploadConfig): S3Client {
       secretAccessKey: config.secretAccessKey,
     },
     forcePathStyle: true,
+    maxAttempts: 2,
+    requestHandler: {
+      connectionTimeout: 10_000,
+      requestTimeout: 300_000,
+      socketTimeout: 300_000,
+    },
   });
 }

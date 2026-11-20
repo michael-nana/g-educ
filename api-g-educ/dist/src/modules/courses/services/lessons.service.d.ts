@@ -23,6 +23,7 @@ export declare class LessonsService {
     private readonly teacherScopeService;
     constructor(prisma: PrismaService, auditService: AuditService, gamificationService: GamificationService, uploadService: UploadService, teacherScopeService: TeacherScopeService);
     private sanitizeMarkdown;
+    private validateVideoUrl;
     private findLessonOrFail;
     private assertLessonAccess;
     create(user: CurrentUser, chapterId: string, dto: CreateLessonDto): Promise<{
@@ -39,6 +40,7 @@ export declare class LessonsService {
         chapterId: string;
         type: LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
@@ -56,8 +58,21 @@ export declare class LessonsService {
         chapterId: string;
         type: LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
+    }>;
+    uploadVideoAsset(user: CurrentUser, lessonId: string, file: Express.Multer.File): Promise<{
+        id: string;
+        createdAt: Date;
+        durationSeconds: number | null;
+        lessonId: string;
+        kind: AssetKind;
+        quality: import("../../../generated/prisma/enums").VideoQuality | null;
+        storageKey: string;
+        mimeType: string;
+        sizeBytes: number;
+        processingStatus: AssetProcessingStatus;
     }>;
     uploadPdfAsset(user: CurrentUser, lessonId: string, file: Express.Multer.File): Promise<{
         id: string;
@@ -88,6 +103,7 @@ export declare class LessonsService {
         chapterId: string;
         type: LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
@@ -105,10 +121,16 @@ export declare class LessonsService {
         chapterId: string;
         type: LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         publishedById: string | null;
     }>;
     findAll(user: CurrentUser, filters: LessonFilterDto): Promise<{
+        myProgress: {
+            progressPercent: number;
+            lastPositionSeconds: number | null;
+            completedAt: Date | null;
+        };
         id: string;
         createdAt: Date;
         position: number;
@@ -120,14 +142,14 @@ export declare class LessonsService {
         chapterId: string;
         type: LessonType;
         durationSeconds: number | null;
+        _count: {
+            assets: number;
+        };
         chapter: {
             id: string;
             classSubjectId: string;
             status: ContentStatus;
             title: string;
-        };
-        _count: {
-            assets: number;
         };
     }[]>;
     findOne(user: CurrentUser, lessonId: string): Promise<{
@@ -136,6 +158,7 @@ export declare class LessonsService {
         title: string;
         type: LessonType;
         contentMarkdown: string | null;
+        videoUrl: string | null;
         durationSeconds: number | null;
         position: number;
         status: ContentStatus;
@@ -212,6 +235,7 @@ export declare class LessonsService {
             durationSeconds: number | null;
             chapter: {
                 id: string;
+                classSubjectId: string;
                 title: string;
             };
         };

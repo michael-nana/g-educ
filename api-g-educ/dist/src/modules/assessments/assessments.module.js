@@ -14,6 +14,7 @@ const auth_module_1 = require("../auth/auth.module");
 const audit_module_1 = require("../audit/audit.module");
 const academics_module_1 = require("../academics/academics.module");
 const gamification_module_1 = require("../gamification/gamification.module");
+const upload_module_1 = require("../../common/upload/upload.module");
 let AssessmentsModule = class AssessmentsModule {
 };
 exports.AssessmentsModule = AssessmentsModule;
@@ -24,6 +25,7 @@ exports.AssessmentsModule = AssessmentsModule = __decorate([
             audit_module_1.AuditModule,
             academics_module_1.AcademicsModule,
             gamification_module_1.GamificationModule,
+            upload_module_1.UploadModule,
         ],
         controllers: [
             assessments_controller_1.AssessmentsController,

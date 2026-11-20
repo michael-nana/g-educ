@@ -95,6 +95,25 @@ uploadAsset(
   return this.lessonsService.uploadPdfAsset(user, id, file);
 }
 
+@Post('lessons/:id/video')
+@Roles('ADMINISTRATEUR', 'ENSEIGNANT')
+@UseInterceptors(
+  FileInterceptor('file', {
+    storage: memoryStorage(),
+    limits: {
+      fileSize: 100 * 1024 * 1024,
+      files: 1,
+    },
+  }),
+)
+uploadVideo(
+  @CurrentUser() user: any,
+  @Param('id', ParseUUIDPipe) id: string,
+  @UploadedFile() file: Express.Multer.File,
+) {
+  return this.lessonsService.uploadVideoAsset(user, id, file);
+}
+
 @Delete('lessons/:id/assets/:assetId')
 @Roles('ADMINISTRATEUR', 'ENSEIGNANT')
 deleteAsset(
